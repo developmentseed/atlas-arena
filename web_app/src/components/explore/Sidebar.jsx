@@ -17,7 +17,6 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { FiCheck, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
 
 import {
   ALL_VIRUS,
@@ -44,7 +43,7 @@ import {
   SHOW_POINTS_LABEL,
   SHOW_FOI_LABEL,
 } from '@/config/constants/constants.explore';
-import { LuUpload } from 'react-icons/lu';
+import { LuCheck, LuChevronLeft, LuChevronRight, LuUpload, LuX } from 'react-icons/lu';
 
 // Shared by the locked controls (aria-describedby) while custom data is shown
 const CUSTOM_DATA_NOTICE_ID = 'custom-data-notice';
@@ -328,7 +327,7 @@ const Sidebar = ({
                     color='blue.600'
                   >
                     {customData.status === 'SUCCEEDED' ? (
-                      <Icon as={FiCheck} boxSize={4} aria-hidden='true' />
+                      <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
                     ) : (
                       <Spinner size='xs' aria-hidden='true' />
                     )}
@@ -340,7 +339,7 @@ const Sidebar = ({
                     variant='outline'
                     colorScheme='blue'
                     bg='white'
-                    leftIcon={<Icon as={FiX} />}
+                    leftIcon={<Icon as={LuX} />}
                     onClick={handleClearCustomData}
                   >
                     {CLEAR_CUSTOM_DATA_BUTTON}
@@ -365,7 +364,7 @@ const Sidebar = ({
         aria-label='Toggle Sidebar'
         backgroundColor='white'
         sx={{ border: '1px solid gray' }}
-        icon={<Icon as={isCollapsed ? FiChevronRight : FiChevronLeft} />}
+        icon={<Icon as={isCollapsed ? LuChevronRight : LuChevronLeft} />}
         position='absolute'
         top='10px'
         left={isCollapsed ? '-5px' : '345px'}
