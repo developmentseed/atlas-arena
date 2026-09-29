@@ -75,7 +75,6 @@ const Sidebar = ({
   hasFoi = false,
   showFoi = true,
   onToggleFoi,
-  children,
 }) => {
   const { allVirus, allSpecies, allTimeFrame, allModels } = useAppContext();
 
@@ -304,7 +303,6 @@ const Sidebar = ({
         isLocked={!!customData}
         describedBy={CUSTOM_DATA_NOTICE_ID}
       />
-      {children}
       <RequireAuth>
         <Stack spacing={2} mt='auto' pt={4}>
           {customData && hasFoi && (

@@ -29,13 +29,9 @@ import {
   LEGEND_FOI_TITLE,
   LEGEND_FOI_TICKS,
 } from '@/config/constants/constants.explore';
-import MapSummary, {
-  MAP_SUMMARY_TEXT_ID,
-} from '@/components/explore/MapSummary';
 import PageTitle from '@/components/custom/PageTitle';
 import { buildPageTitle } from '@/config/constants/general';
 import { MAP_REGION_LABEL } from '@/config/constants/constants.explore';
-import { getHotspotSummary } from '@/libs/hotspots';
 
 const BASENAME = (process.env.PUBLIC_URL || '').replace('//', '/');
 
@@ -45,7 +41,7 @@ const initialViewState = {
   zoom: 3.1,
 };
 
-const Explore = ({ mddata, hotspotSummary = {} }) => {
+const Explore = ({ mddata }) => {
   const { raw_data } = useAppContext();
 
   const mapRef = useRef(null);
@@ -215,19 +211,6 @@ const Explore = ({ mddata, hotspotSummary = {} }) => {
     color: i.color,
   }));
 
-  // "Show only this layer": hide every other legend layer
-  const handleShowOnlyLayer = (title) => {
-    const allLayers = [...labelSDM, ...labelsFoi, ...labelsHotSpot].map(
-      (i) => i.title
-    );
-    setLayerStyle(
-      Object.fromEntries(allLayers.map((i) => [i, i === title ? 100 : 0]))
-    );
-  };
-
-  const handleShowAllLayers = () => {
-    setLayerStyle({});
-  };
 
   const labelSDM = sortList(
     getUniqueCombinations(
@@ -283,22 +266,12 @@ const Explore = ({ mddata, hotspotSummary = {} }) => {
         hasFoi={customJob.foiLayers.length > 0}
         showFoi={customJob.showFoi}
         onToggleFoi={() => customJob.setShowFoi((show) => !show)}
-      >
-        <MapSummary
-          summary={hotspotSummary}
-          timeFrame={dataFilter.time_frame}
-          model={dataFilter.model}
-          hotspotLayers={labelsHotSpot}
-          sdmLayers={labelSDM}
-          opacity={opacityFilter}
-        />
-      </Sidebar>
+      />
       <Box flex={1} minH={0} minW={0} position='relative'>
         <Box
           id='explore-map'
           role='region'
           aria-label={MAP_REGION_LABEL}
-          aria-describedby={MAP_SUMMARY_TEXT_ID}
           tabIndex={-1}
           _focus={{ outline: 'none' }}
           h='100%'
@@ -350,8 +323,6 @@ const Explore = ({ mddata, hotspotSummary = {} }) => {
             value={opacityFilter}
             isDelta={!customData && hasDeltaValue}
             handleChange={handleChangeLayerStyle}
-            handleShowOnly={handleShowOnlyLayer}
-            handleShowAll={handleShowAllLayers}
           />
           <SDMLegend
             labels={labelsFoi}
@@ -359,15 +330,11 @@ const Explore = ({ mddata, hotspotSummary = {} }) => {
             heading={LEGEND_FOI_TITLE}
             ticks={LEGEND_FOI_TICKS}
             handleChange={handleChangeLayerStyle}
-            handleShowOnly={handleShowOnlyLayer}
-            handleShowAll={handleShowAllLayers}
           />
           <HotSpotLegend
             labels={labelsHotSpot}
             value={opacityFilter}
             handleChange={handleChangeLayerStyle}
-            handleShowOnly={handleShowOnlyLayer}
-            handleShowAll={handleShowAllLayers}
           />
         </Box>
         <SidePanel dataVirus={dataVirus} />
@@ -389,7 +356,6 @@ export async function getStaticProps() {
   return {
     props: {
       mddata: result,
-      hotspotSummary: getHotspotSummary(),
     },
   };
 }
