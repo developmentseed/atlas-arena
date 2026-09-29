@@ -1,20 +1,5 @@
-import {
-  Flex,
-  Box,
-  Icon,
-  Text,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverCloseButton,
-  PopoverBody,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-} from '@chakra-ui/react';
-import { LuDroplet } from 'react-icons/lu';
+import { Flex, Box, Heading, Text } from '@chakra-ui/react';
+import { useId } from 'react';
 import {
   MAP_COLORS,
   DEFAULT_OPACITY_SINGLE,
@@ -24,11 +9,11 @@ import {
   W_LEGEND,
 } from '@/config/constants/general';
 import {
-  LEGEND_OPACITY,
   UNIT_SDM,
   UNIT_DELTA,
   LEGEND_SDM_TITLE,
 } from '@/config/constants/constants.explore';
+import LayerOpacityControl from '@/components/explore/LayerOpacityControl';
 
 // `title` keys the opacity value; `name` (optional) is shown instead of the
 // abbreviated species-style title.
@@ -38,6 +23,8 @@ const ColorLegend = ({
   name = null,
   labels = [],
   handleChange = null,
+  handleShowOnly = null,
+  handleShowAll = null,
   value = {},
   has_many = false,
 }) => {
@@ -62,14 +49,14 @@ const ColorLegend = ({
         : DEFAULT_OPACITY_SINGLE;
 
   return (
-    <Box display='flex' flexDirection='column' w='full'>
+    <Box as='li' display='flex' flexDirection='column' w='full'>
       <Flex
         display='flex'
         justifyContent='space-between'
         width='full'
         mb={0}
         bg='transparent'
-        alignItems="center"
+        alignItems='center'
       >
         <Text
           fontSize='xs'
@@ -78,42 +65,18 @@ const ColorLegend = ({
           color='base.700'
           textTransform='capitalize'
         >
-          {customTitle}
+          <span aria-hidden='true'>{customTitle}</span>
+          <Text as='span' srOnly>
+            {title}
+          </Text>
         </Text>
-        <Popover placement='bottom-end'>
-          <PopoverTrigger>
-            <Flex>
-              <Icon as={LuDroplet} boxSize={4} color='gray.500' cursor='pointer' />
-            </Flex>
-          </PopoverTrigger>
-          <PopoverContent
-            w='163px'
-            px={2}
-            pt={0}
-            mt={0}
-            ml='127px'
-            _focus={{ outline: 'none' }}
-            zIndex={10}
-          >
-            <PopoverArrow />
-            <PopoverCloseButton boxSize={3} />
-            <PopoverBody p={1}>
-              <Text fontSize='12px' m={0}>
-                {LEGEND_OPACITY}
-              </Text>
-              <Slider
-                aria-label='slider-ex-1'
-                defaultValue={opacity}
-                onChange={handleChangeOpacity}
-              >
-                <SliderTrack>
-                  <SliderFilledTrack />
-                </SliderTrack>
-                <SliderThumb boxSize={4} />
-              </Slider>
-            </PopoverBody>
-          </PopoverContent>
-        </Popover>
+        <LayerOpacityControl
+          name={title}
+          value={opacity}
+          handleChange={handleChangeOpacity}
+          handleShowOnly={() => handleShowOnly(title)}
+          handleShowAll={handleShowAll}
+        />
       </Flex>
       <Box
         h='10px'
@@ -121,6 +84,7 @@ const ColorLegend = ({
         display='flex'
         width='full'
         bgGradient={`linear(to-r, ${colors[0]}, ${colors[colors.length - 1]})`}
+        aria-hidden='true'
       />
       <Box
         display='flex'
@@ -128,6 +92,7 @@ const ColorLegend = ({
         px={1}
         justifyContent='space-between'
         width='full'
+        aria-hidden='true'
       >
         {labels &&
           labels.map((i) => (
@@ -147,9 +112,13 @@ const SDMLegend = ({
   value = {},
   isDelta = false,
   handleChange = null,
+  handleShowOnly = null,
+  handleShowAll = null,
   heading = null,
   ticks = null,
 }) => {
+  // Unique per instance: the legend renders once for species and once for FOI.
+  const headingId = useId();
   const labelsUnits =
     ticks || (isDelta ? LEGEND_DELTA_VALUE : DEFAULT_LEGEND_VALUE);
   const unit = isDelta ? UNIT_DELTA : UNIT_SDM;
@@ -163,11 +132,15 @@ const SDMLegend = ({
       labels={labelsUnits}
       value={value}
       handleChange={handleChange}
+      handleShowOnly={handleShowOnly}
+      handleShowAll={handleShowAll}
     />
   ));
 
   return (
     <Box
+      as='section'
+      aria-labelledby={headingId}
       w={`${W_LEGEND}px`}
       h='auto'
       p={2}
@@ -181,15 +154,22 @@ const SDMLegend = ({
       justifyContent='space-between'
       boxShadow='sm'
     >
-      <Text
+      <Heading
+        as='h2'
+        id={headingId}
         fontSize='xs'
         fontWeight={600}
         color='base.600'
         textTransform='uppercase'
       >
         {heading || `${LEGEND_SDM_TITLE} ${unit}`}
+      </Heading>
+      <Text srOnly>
+        {`Scale from ${labelsUnits[0]} to ${labelsUnits[labelsUnits.length - 1]}.`}
       </Text>
       <Box
+        as='ul'
+        listStyleType='none'
         display='flex'
         flexDirection='column'
         gap={2}

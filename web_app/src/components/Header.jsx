@@ -38,6 +38,7 @@ const Header = () => {
 
   return (
     <Box
+      as='header'
       bg='white'
       ref={headerRef}
       py={2}
@@ -58,6 +59,7 @@ const Header = () => {
           >
             <Image
               src={AALogo.src}
+              alt=''
               height='48px'
               objectFit='cover'
               m='-4'
@@ -90,7 +92,9 @@ const Header = () => {
         <IconButton
           size={'sm'}
           icon={<Icon as={isOpen ? LuX : LuMenu} />}
-          aria-label={'Open Menu'}
+          aria-label={isOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={isOpen}
+          aria-controls='mobile-nav'
           colorScheme='blue'
           display={{ md: 'none' }}
           variant='ghost'
@@ -105,7 +109,7 @@ const Header = () => {
           mt={6}
           bg='white'
         >
-          <Stack as={'nav'} spacing={4}>
+          <Stack as={'nav'} id='mobile-nav' spacing={4}>
             {LINK_HEADER.map((item) => (
               <NavLink key={item.text} {...item} />
             ))}

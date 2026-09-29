@@ -39,6 +39,7 @@ const MapComponent = () => {
         <BackdropBlur />
         <Image
           src={indexImage.src}
+          alt=''
           objectFit='cover'
           mixBlendMode='multiply'
           w='full'

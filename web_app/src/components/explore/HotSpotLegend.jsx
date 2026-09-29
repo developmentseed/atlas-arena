@@ -1,33 +1,24 @@
-import {
-  Flex,
-  Box,
-  Icon,
-  Text,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverCloseButton,
-  PopoverBody,
-  Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
-} from '@chakra-ui/react';
-import { LuDroplet } from 'react-icons/lu';
+import { Flex, Box, Heading, Icon, Text } from '@chakra-ui/react';
 import {
   MAP_COLORS,
   DEFAULT_OPACITY_MULTIPLE,
   W_LEGEND,
 } from '@/config/constants/general';
 import {
-  LEGEND_OPACITY,
   LEGEND_HOTSPOT_TITLE,
   LEGEND_HOTSPOT_DESC,
 } from '@/config/constants/constants.explore';
 import { LuCircle } from 'react-icons/lu';
+import LayerOpacityControl from '@/components/explore/LayerOpacityControl';
 
-const VirusLegend = ({ title, color, value, handleChange }) => {
+const VirusLegend = ({
+  title,
+  color,
+  value,
+  handleChange,
+  handleShowOnly,
+  handleShowAll,
+}) => {
   const handleChangeOpacity = (ev) => {
     handleChange(title, ev);
   };
@@ -43,14 +34,22 @@ const VirusLegend = ({ title, color, value, handleChange }) => {
   }
   return (
     <Flex
+      as='li'
       display='flex'
       justifyContent='space-between'
-      alignItems="center"
+      alignItems='center'
       width='full'
       bg='transparent'
     >
-      <Flex alignItems="center">
-        <Icon as={LuCircle} mr={2} color={colors[2]} fontSize='xs' fill='currentColor' />
+      <Flex alignItems='center'>
+        <Icon
+          as={LuCircle}
+          mr={2}
+          color={colors[2]}
+          fontSize='xs'
+          fill='currentColor'
+          aria-hidden='true'
+        />
         <Text
           fontSize='xs'
           fontWeight={500}
@@ -60,45 +59,24 @@ const VirusLegend = ({ title, color, value, handleChange }) => {
           {customTitle}
         </Text>
       </Flex>
-      <Popover placement='bottom-end'>
-        <PopoverTrigger>
-          <Flex>
-            <Icon as={LuDroplet} boxSize={4} color='gray.500' cursor='pointer' />
-          </Flex>
-        </PopoverTrigger>
-        <PopoverContent
-          w='163px'
-          px={2}
-          pt={0}
-          mt={0}
-          ml='127px'
-          _focus={{ outline: 'none' }}
-          zIndex={10}
-        >
-          <PopoverArrow />
-          <PopoverCloseButton boxSize={3} />
-          <PopoverBody p={1}>
-            <Text fontSize='12px' m={0}>
-              {LEGEND_OPACITY}
-            </Text>
-            <Slider
-              aria-label='slider-ex-1'
-              defaultValue={opacity}
-              onChange={handleChangeOpacity}
-            >
-              <SliderTrack>
-                <SliderFilledTrack />
-              </SliderTrack>
-              <SliderThumb boxSize={4} />
-            </Slider>
-          </PopoverBody>
-        </PopoverContent>
-      </Popover>
+      <LayerOpacityControl
+        name={title}
+        value={opacity}
+        handleChange={handleChangeOpacity}
+        handleShowOnly={() => handleShowOnly(title)}
+        handleShowAll={handleShowAll}
+      />
     </Flex>
   );
 };
 
-const HotSpotLegend = ({ labels = [], value = {}, handleChange = null }) => {
+const HotSpotLegend = ({
+  labels = [],
+  value = {},
+  handleChange = null,
+  handleShowOnly = null,
+  handleShowAll = null,
+}) => {
   if (!labels || labels.length == 0) return null;
   const renderBoxLegend = labels.map((i) => (
     <VirusLegend
@@ -106,10 +84,14 @@ const HotSpotLegend = ({ labels = [], value = {}, handleChange = null }) => {
       {...i}
       value={value}
       handleChange={handleChange}
+      handleShowOnly={handleShowOnly}
+      handleShowAll={handleShowAll}
     />
   ));
   return (
     <Box
+      as='section'
+      aria-labelledby='legend-hotspot-title'
       w={`${W_LEGEND}px`}
       h='auto'
       p={2}
@@ -122,23 +104,27 @@ const HotSpotLegend = ({ labels = [], value = {}, handleChange = null }) => {
       position='relative'
       justifyContent='space-between'
     >
-      <Text
+      <Heading
+        as='h2'
+        id='legend-hotspot-title'
         fontSize='xs'
         fontWeight={600}
         color='base.600'
         textTransform='uppercase'
       >
         {LEGEND_HOTSPOT_TITLE}
-      </Text>
+      </Heading>
       <Text fontSize='xs' color='base.700' textTransform='lowercase'>
         {LEGEND_HOTSPOT_DESC}
       </Text>
       <Box
+        as='ul'
+        listStyleType='none'
         display='flex'
         flexDirection='column'
         mt={2}
         gap={2}
-        alignItems="center"
+        alignItems='center'
         width='full'
       >
         {renderBoxLegend}
