@@ -9,8 +9,10 @@ DISTRIBUTION_ID="${STAGING_DISTRIBUTION_ID:?set STAGING_DISTRIBUTION_ID}"
 
 cd "$(dirname "$0")"
 
-npx --yes yarn@1.22.22 install --frozen-lockfile
-npx --yes yarn@1.22.22 build
+# yarn.lock is Yarn Berry lockfile format 8; Yarn 4.14+ rewrites it to 10.
+YARN="npx --yes @yarnpkg/cli-dist@4.13.0"
+$YARN install --immutable
+$YARN build
 
 # Hashed build assets never change, so cache them for a year; everything else
 # (HTML, markdown, data) is revalidated on every request. cogs/ holds the
