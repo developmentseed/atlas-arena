@@ -43,6 +43,18 @@ const Explore = ({ mddata }) => {
   const { raw_data } = useAppContext();
 
   const mapRef = useRef(null);
+  const mapContainerRef = useRef(null);
+
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    if (!container || typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(() => {
+      if (mapRef.current) mapRef.current.resize();
+    });
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
   const [viewState, setViewState] = useState({ ...initialViewState });
   const [filterTilesId, setFilterTilesId] = useState([]);
   const [foiHotspot, setFoiHotspot] = useState(null);
@@ -249,7 +261,7 @@ const Explore = ({ mddata }) => {
       />
       <Box flex={1} position='relative'>
         <Box h={`calc(100vh - ${H_HEADER}px)`} flex={1}>
-          <Box h='100%' w='100%'>
+          <Box ref={mapContainerRef} h='100%' w='100%'>
             <Map
               ref={mapRef}
               initialViewState={viewState}

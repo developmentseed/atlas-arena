@@ -43,7 +43,13 @@ import {
   SHOW_POINTS_LABEL,
   SHOW_FOI_LABEL,
 } from '@/config/constants/constants.explore';
-import { LuCheck, LuChevronLeft, LuChevronRight, LuUpload, LuX } from 'react-icons/lu';
+import {
+  LuCheck,
+  LuPanelLeftClose,
+  LuPanelLeftOpen,
+  LuUpload,
+  LuX,
+} from 'react-icons/lu';
 
 // Shared by the locked controls (aria-describedby) while custom data is shown
 const CUSTOM_DATA_NOTICE_ID = 'custom-data-notice';
@@ -235,143 +241,163 @@ const Sidebar = ({
       maxH={`calc(100vh - ${H_HEADER}px)`}
     >
       <Box
-        w={
-          isCollapsed
-            ? { base: '0px', md: '330px' }
-            : { base: '100%', md: '330px' }
-        }
+        id='explore-filters'
+        w={isCollapsed ? '0px' : { base: '100%', md: '330px' }}
         maxW={{ base: '100%', md: '330px' }}
         bg={isCollapsed ? 'transparent' : 'secondary.50'}
         h='100%'
         p={isCollapsed ? 0 : { base: '16px', md: '24px' }}
+        overflowX='hidden'
         overflowY='auto'
-        boxShadow='sm'
-        borderRight='1px solid'
+        boxShadow={isCollapsed ? 'none' : 'sm'}
+        borderRight={isCollapsed ? 'none' : '1px solid'}
         borderColor='blackAlpha.400'
         transition='all 0.3s ease'
       >
-        {!isCollapsed && (
-          <Box display='flex' flexDirection='column' mb={4} h='full'>
-            <FormControlText label={SIDEBAR_TITLE} text={SIDEBAR_SUBTITLE} />
-            <FormControlSelect
-              label={VIRUS_LABEL}
-              options={allVirus}
-              info={VIRUS_INFO}
-              value={selectedVirus}
-              handleAction={handleVirusChange}
-            />
+        <Box
+          display={isCollapsed ? 'none' : 'flex'}
+          flexDirection='column'
+          mb={4}
+          h='full'
+          minW={{ md: '282px' }}
+        >
+          <FormControlText label={SIDEBAR_TITLE} text={SIDEBAR_SUBTITLE} />
+          <FormControlSelect
+            label={VIRUS_LABEL}
+            options={allVirus}
+            info={VIRUS_INFO}
+            value={selectedVirus}
+            handleAction={handleVirusChange}
+          />
 
-            <FormControlRadioTime
-              label={TIMEFRAME_LABEL}
-              options={allTimeFrame}
-              info={TIMEFRAME_INFO}
-              handleAction={handleTimeFrameChange}
-              isLocked={!!customData}
-              lockedValue={customData ? customData.scenario : ''}
-              describedBy={CUSTOM_DATA_NOTICE_ID}
-            />
-            <FormControlSwitch
-              label={SDM_TOGGLE_LABEL}
-              value={selectedHotSpot}
-              handleAction={handleHotSpotChange}
-            />
-            <FormControlCheckBoxSpecies
-              label={SPECIES_LABEL}
-              options={allSpecies}
-              info={SPECIES_INFO}
-              values={selectedSpecies}
-              handleAction={handleSpeciesChange}
-              filterValue={selectedVirus}
-              isDisabled={!selectedHotSpot}
-              isLocked={!!customData}
-              notice={
-                customData && customData.species
-                  ? CUSTOM_DATA_NOTICE(customData.species)
-                  : ''
-              }
-              noticeId={CUSTOM_DATA_NOTICE_ID}
-            />
-            <FormControlSelect
-              label={MODEL_LABEL}
-              options={allModels}
-              info={MODEL_INFO}
-              value={selectedModel}
-              handleAction={handleModelChange}
-              isDisabled={!selectedHotSpot}
-              isLocked={!!customData}
-              describedBy={CUSTOM_DATA_NOTICE_ID}
-            />
-            <RequireAuth>
-              <Stack spacing={2} mt='auto' pt={4}>
-                {customData && hasFoi && (
-                  <FormControlSwitch
-                    label={SHOW_FOI_LABEL}
-                    value={showFoi}
-                    handleAction={onToggleFoi}
-                  />
-                )}
-                {customData && hasPoints && (
-                  <FormControlSwitch
-                    label={SHOW_POINTS_LABEL}
-                    value={showPoints}
-                    handleAction={onTogglePoints}
-                  />
-                )}
-                {customData && JOB_STATUS_TEXT[customData.status] && (
-                  <Flex
-                    role='status'
-                    alignItems='center'
-                    gap={2}
-                    fontSize='sm'
-                    fontWeight={600}
-                    color='blue.600'
-                  >
-                    {customData.status === 'SUCCEEDED' ? (
-                      <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
-                    ) : (
-                      <Spinner size='xs' aria-hidden='true' />
-                    )}
-                    <Text>{JOB_STATUS_TEXT[customData.status]}</Text>
-                  </Flex>
-                )}
-                {customData && (
-                  <Button
-                    variant='outline'
-                    colorScheme='blue'
-                    bg='white'
-                    leftIcon={<Icon as={LuX} />}
-                    onClick={handleClearCustomData}
-                  >
-                    {CLEAR_CUSTOM_DATA_BUTTON}
-                  </Button>
-                )}
-                <Button
-                  ref={uploadButtonRef}
-                  variant='solid'
-                  colorScheme='blue'
-                  leftIcon={<Icon as={LuUpload} />}
-                  onClick={() => setUploadModalOpen(true)}
+          <FormControlRadioTime
+            label={TIMEFRAME_LABEL}
+            options={allTimeFrame}
+            info={TIMEFRAME_INFO}
+            handleAction={handleTimeFrameChange}
+            isLocked={!!customData}
+            lockedValue={customData ? customData.scenario : ''}
+            describedBy={CUSTOM_DATA_NOTICE_ID}
+          />
+          <FormControlSwitch
+            label={SDM_TOGGLE_LABEL}
+            value={selectedHotSpot}
+            handleAction={handleHotSpotChange}
+          />
+          <FormControlCheckBoxSpecies
+            label={SPECIES_LABEL}
+            options={allSpecies}
+            info={SPECIES_INFO}
+            values={selectedSpecies}
+            handleAction={handleSpeciesChange}
+            filterValue={selectedVirus}
+            isDisabled={!selectedHotSpot}
+            isLocked={!!customData}
+            notice={
+              customData && customData.species
+                ? CUSTOM_DATA_NOTICE(customData.species)
+                : ''
+            }
+            noticeId={CUSTOM_DATA_NOTICE_ID}
+          />
+          <FormControlSelect
+            label={MODEL_LABEL}
+            options={allModels}
+            info={MODEL_INFO}
+            value={selectedModel}
+            handleAction={handleModelChange}
+            isDisabled={!selectedHotSpot}
+            isLocked={!!customData}
+            describedBy={CUSTOM_DATA_NOTICE_ID}
+          />
+          <RequireAuth>
+            <Stack spacing={2} mt='auto' pt={4}>
+              {customData && hasFoi && (
+                <FormControlSwitch
+                  label={SHOW_FOI_LABEL}
+                  value={showFoi}
+                  handleAction={onToggleFoi}
+                />
+              )}
+              {customData && hasPoints && (
+                <FormControlSwitch
+                  label={SHOW_POINTS_LABEL}
+                  value={showPoints}
+                  handleAction={onTogglePoints}
+                />
+              )}
+              {customData && JOB_STATUS_TEXT[customData.status] && (
+                <Flex
+                  role='status'
+                  alignItems='center'
+                  gap={2}
+                  fontSize='sm'
+                  fontWeight={600}
+                  color='blue.600'
                 >
-                  {UPLOAD_BUTTON}
+                  {customData.status === 'SUCCEEDED' ? (
+                    <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
+                  ) : (
+                    <Spinner size='xs' aria-hidden='true' />
+                  )}
+                  <Text>{JOB_STATUS_TEXT[customData.status]}</Text>
+                </Flex>
+              )}
+              {customData && (
+                <Button
+                  variant='outline'
+                  colorScheme='blue'
+                  bg='white'
+                  leftIcon={<Icon as={LuX} />}
+                  onClick={handleClearCustomData}
+                >
+                  {CLEAR_CUSTOM_DATA_BUTTON}
                 </Button>
-              </Stack>
-            </RequireAuth>
-          </Box>
-        )}
+              )}
+              <Button
+                ref={uploadButtonRef}
+                variant='solid'
+                colorScheme='blue'
+                leftIcon={<Icon as={LuUpload} />}
+                onClick={() => setUploadModalOpen(true)}
+              >
+                {UPLOAD_BUTTON}
+              </Button>
+            </Stack>
+          </RequireAuth>
+        </Box>
       </Box>
-
+      {/* Desktop: a tab docked to the sidebar's right edge (square on the
+          left, flush with the panel), following it when collapsed.
+          Mobile: floats top-right in the panel, or top-left over the map. */}
       <IconButton
-        aria-label='Toggle Sidebar'
-        backgroundColor='white'
-        sx={{ border: '1px solid gray' }}
-        icon={<Icon as={isCollapsed ? LuChevronRight : LuChevronLeft} />}
+        aria-label={isCollapsed ? 'Show filters' : 'Hide filters'}
+        aria-expanded={!isCollapsed}
+        aria-controls='explore-filters'
+        icon={
+          <Icon
+            as={isCollapsed ? LuPanelLeftOpen : LuPanelLeftClose}
+            boxSize={4}
+          />
+        }
+        size='sm'
+        bg={{ base: 'white', md: 'secondary.50' }}
+        color='blue.800'
+        border='1px solid'
+        borderColor={{ base: 'gray.300', md: 'blackAlpha.400' }}
+        borderLeftWidth={{ base: '1px', md: 0 }}
+        borderLeftRadius={{ base: 'md', md: 0 }}
+        boxShadow='sm'
+        _hover={{ bg: { base: 'gray.50', md: 'secondary.100' } }}
         position='absolute'
         top='10px'
-        left={isCollapsed ? '-5px' : '345px'}
-        size='md'
+        left={
+          isCollapsed ? { base: '10px', md: 0 } : { base: 'auto', md: '330px' }
+        }
+        right={isCollapsed ? 'auto' : { base: '10px', md: 'auto' }}
+        transition='left 0.3s ease, background-color 0.2s'
         onClick={toggleSidebar}
         zIndex={1000}
-        display={{ base: 'block', md: 'none' }}
       />
       <RequireAuth>
         <UploadModal
