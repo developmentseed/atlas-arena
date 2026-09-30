@@ -48,6 +48,27 @@ Each key in this file represents a folder name, and its value is a dictionary co
 }
 ```
 
+## Create Cloud Optimized GeoTIFFs
+
+The web app reads the rasters directly as COGs. `src/make_cogs.py` converts every
+`.tif` under `data/raw` into `data/cogs/<v>_<s>_<t>_<m>_<f>.tif`, named with the
+`short` values above so they match the `path` of each layer in
+`web_app/src/config/catalog.json`. Values stay float32 in their original units,
+and nodata is normalised to NaN. It needs numpy and the GDAL Python bindings.
+
+```shell
+python3 src/make_cogs.py \
+  --raw_folder_path=data/raw \
+  --out_folder_path=data/cogs \
+  --name_equivalence_path=name_equivalence.json
+
+aws s3 sync data/cogs/ s3://atlasarena-staging-frontend/cogs/ \
+  --content-type image/tiff --cache-control "public, max-age=3600"
+```
+
+Replacing a file under the same name needs a CloudFront invalidation of `/cogs/*`
+to show up within the hour.
+
 ## Upload files to Mapbox
 
 1. Create [docker](https://docs.docker.com/engine/install/) image

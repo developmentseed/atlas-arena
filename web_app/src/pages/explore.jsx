@@ -1,10 +1,9 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Flex, Box } from '@chakra-ui/react';
-import StaticMap from 'react-map-gl';
+import Map from 'react-map-gl/maplibre';
 import { useAppContext } from '@/store/context';
 import { dynamicFilter, getUniqueCombinations, sortList } from '@/utils/utils';
 import Sidebar from '@/components/explore/Sidebar';
-import RasterLayer from '@/components/explore/RasterLayer';
 import axios from 'axios';
 import pako from 'pako';
 import SDMLegend from '@/components/explore/SDMLegend';
@@ -12,6 +11,9 @@ import { getMetadataMd } from '@/libs/markdown';
 import SidePanel from '@/components/explore/SidePanel';
 import {
   ALL_VIRUS,
+  BASEMAP_STYLE,
+  DEFAULT_OPACITY_MULTIPLE,
+  DEFAULT_OPACITY_SINGLE,
   H_HEADER,
   MAX_ZOOM_MAP,
   MIN_ZOOM_MAP,
@@ -19,9 +21,9 @@ import {
 import FoiVectorLayer from '@/components/explore/FoiVectorLayer';
 import HotSpotLegend from '@/components/explore/HotSpotLegend';
 import HeadMapLayer from '@/components/explore/HeadMapLayer';
+import DeckOverlay from '@/components/explore/DeckOverlay';
+import { buildCogLayer } from '@/components/explore/cogLayer';
 
-const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-const MAPBOX_STYLE = process.env.NEXT_PUBLIC_MAPBOX_STYLE_EXPLORE;
 const BASENAME = (process.env.PUBLIC_URL || '').replace('//', '/');
 
 const initialViewState = {
@@ -116,16 +118,16 @@ const Explore = ({ mddata }) => {
     setLayerStyle({ ...tmpOpacityFilter });
   };
 
-  const buildRender = filterTilesId
-    .filter((i) => i.tileset_id)
-    .map((item) => (
-      <RasterLayer
-        key={item.tileset_id}
-        item={item}
-        opacity_filter={opacityFilter}
-        has_many={filterTilesId.length > 0}
-      />
-    ));
+  // Same default as the legend's opacity slider (SDMLegend's has_many).
+  const speciesCount = new Set(filterTilesId.map((i) => i.species)).size;
+  const defaultOpacity =
+    speciesCount > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
+  const cogLayers = filterTilesId.map((item) =>
+    buildCogLayer({
+      item,
+      opacity: (opacityFilter[item.species] ?? defaultOpacity) / 100,
+    })
+  );
 
   const labelSDM = sortList(
     getUniqueCombinations(
@@ -164,16 +166,14 @@ const Explore = ({ mddata }) => {
       <Box flex={1} position='relative'>
         <Box h={`calc(100vh - ${H_HEADER}px)`} flex={1}>
           <Box h='100%' w='100%'>
-            <StaticMap
+            <Map
               ref={mapRef}
               initialViewState={viewState}
               // onLoad={handleLoad}
               minZoom={MIN_ZOOM_MAP}
               maxZoom={MAX_ZOOM_MAP}
               dragRotate={false}
-              mapStyle={MAPBOX_STYLE}
-              mapboxAccessToken={MAPBOX_ACCESS_TOKEN}
-              projection='mercator'
+              mapStyle={BASEMAP_STYLE}
             >
               <FoiVectorLayer
                 jsonData={foiHotspot}
@@ -190,8 +190,8 @@ const Explore = ({ mddata }) => {
                 virus={dataFilter.virus}
                 opacity_filter={opacityFilter}
               />
-              {buildRender}
-            </StaticMap>
+              <DeckOverlay layers={cogLayers} />
+            </Map>
           </Box>
         </Box>
         <Box

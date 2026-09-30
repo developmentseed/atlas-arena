@@ -1,5 +1,5 @@
 import React from 'react';
-import { Source, Layer } from 'react-map-gl';
+import { Source, Layer } from 'react-map-gl/maplibre';
 import {
   MAP_COLORS,
   ALL_VIRUS,

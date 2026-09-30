@@ -1,5 +1,4 @@
-import '@/assets/css/globals.css';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 import { ChakraProvider } from '@chakra-ui/react';
 import theme from '@/config/theme';
