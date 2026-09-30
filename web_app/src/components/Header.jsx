@@ -14,6 +14,7 @@ import { Icon } from '@chakra-ui/react';
 import { Link as NextLink } from '@chakra-ui/next-js';
 import AALogo from '/public/assets/img/AALogo.svg';
 import NavLink from '@/components/custom/NavLink';
+import AuthButton from '@/components/AuthButton';
 import { LINK_HEADER, PAGE_TITLE } from '@/config/constants/general';
 
 const Header = () => {
@@ -68,6 +69,7 @@ const Header = () => {
           {LINK_HEADER.map((item) => (
             <NavLink key={item.text} {...item} />
           ))}
+          <AuthButton />
         </HStack>
       </Flex>
       {isOpen ? (
@@ -83,6 +85,9 @@ const Header = () => {
             {LINK_HEADER.map((item) => (
               <NavLink key={item.text} {...item} />
             ))}
+            <Box>
+              <AuthButton />
+            </Box>
           </Stack>
         </Box>
       ) : null}
