@@ -1,7 +1,16 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Flex, Box } from '@chakra-ui/react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Flex, Box, useToast } from '@chakra-ui/react';
 import Map from 'react-map-gl/maplibre';
 import { useAppContext } from '@/store/context';
+import { useAuth } from '@/store/auth';
+import {
+  POLL_INTERVAL_MS,
+  TERMINAL_STATUSES,
+  getJob,
+  pickRaster,
+  readPresence,
+  submitJob,
+} from '@/libs/jobs';
 import { dynamicFilter, getUniqueCombinations, sortList } from '@/utils/utils';
 import Sidebar from '@/components/explore/Sidebar';
 import axios from 'axios';
@@ -45,6 +54,94 @@ const Explore = ({ mddata }) => {
   const [hasDeltaValue, setHasDeltaValue] = useState(false);
   const [dataFilter, setDataFilter] = useState({});
   const [dataVirusSplit, setDataVirusSplit] = useState([]);
+
+  // Custom upload: { species, scenario, pointCount, jobId } while the sidebar
+  // is locked to it, and its raster once the model run has finished.
+  const [customData, setCustomData] = useState(null);
+  const [customRasterUrl, setCustomRasterUrl] = useState(null);
+  // SUBMITTED | RUNNING | SUCCEEDED (only once the raster is available)
+  const [customJobStatus, setCustomJobStatus] = useState(null);
+  const toast = useToast();
+  const { status: authStatus } = useAuth();
+
+  const clearCustomData = useCallback(() => {
+    setCustomData(null);
+    setCustomRasterUrl(null);
+    setCustomJobStatus(null);
+  }, []);
+
+  // Uploads belong to the signed-in user.
+  useEffect(() => {
+    if (authStatus !== 'signedIn') clearCustomData();
+  }, [authStatus, clearCustomData]);
+
+  const handleUpload = async ({ species, scenario, file }) => {
+    const { fc, pointCount } = await readPresence(file);
+    const jobId = await submitJob({
+      species,
+      timeFrame: scenario,
+      presence: fc,
+    });
+    return { pointCount, jobId };
+  };
+
+  const handleUploadSuccess = ({ species, scenario, pointCount, jobId }) => {
+    setCustomRasterUrl(null);
+    setCustomJobStatus('SUBMITTED');
+    setCustomData({ species, scenario, pointCount, jobId });
+  };
+
+  const customJobId = customData && customData.jobId;
+  const customTimeFrame = customData && customData.scenario;
+  useEffect(() => {
+    if (!customJobId) return;
+    let cancelled = false;
+    let timer = null;
+
+    const fail = (message) => {
+      clearInterval(timer);
+      toast({
+        status: 'error',
+        title: 'Model run failed',
+        description: message,
+        isClosable: true,
+        duration: 8000,
+      });
+      clearCustomData();
+    };
+
+    const poll = async () => {
+      let job;
+      try {
+        job = await getJob(customJobId);
+      } catch (err) {
+        if (!cancelled) fail(err.response?.data?.detail || err.message);
+        return;
+      }
+      if (cancelled) return;
+      if (!TERMINAL_STATUSES.includes(job.status)) {
+        setCustomJobStatus(job.status);
+        return;
+      }
+      clearInterval(timer);
+      if (job.status !== 'SUCCEEDED') {
+        fail(job.error || `Job status ${job.status}`);
+        return;
+      }
+      const url = pickRaster(job.rasters, customTimeFrame);
+      if (url) {
+        setCustomRasterUrl(url);
+        setCustomJobStatus('SUCCEEDED');
+      } else fail('The model run produced no raster for this scenario');
+    };
+
+    poll();
+    timer = setInterval(poll, POLL_INTERVAL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [customJobId, customTimeFrame, toast, clearCustomData]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,11 +215,28 @@ const Explore = ({ mddata }) => {
     setLayerStyle({ ...tmpOpacityFilter });
   };
 
+  // While custom data is loaded it replaces the catalog SDM layers; the SDM
+  // toggle (off clears the model filter) still hides it.
+  const customItems =
+    customData && customRasterUrl && dataFilter.model
+      ? [
+          {
+            species: customData.species,
+            url: customRasterUrl,
+            range: [0, 1],
+            color: (
+              raw_data.find((i) => i.species === customData.species) || {}
+            ).color,
+          },
+        ]
+      : [];
+  const sdmItems = customData ? customItems : filterTilesId;
+
   // Same default as the legend's opacity slider (SDMLegend's has_many).
-  const speciesCount = new Set(filterTilesId.map((i) => i.species)).size;
+  const speciesCount = new Set(sdmItems.map((i) => i.species)).size;
   const defaultOpacity =
     speciesCount > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
-  const cogLayers = filterTilesId.map((item) =>
+  const cogLayers = sdmItems.map((item) =>
     buildCogLayer({
       item,
       opacity: (opacityFilter[item.species] ?? defaultOpacity) / 100,
@@ -131,7 +245,7 @@ const Explore = ({ mddata }) => {
 
   const labelSDM = sortList(
     getUniqueCombinations(
-      filterTilesId.filter((i) => i.species),
+      sdmItems.filter((i) => i.species),
       'species',
       'color'
     ).map((i) => ({
@@ -162,6 +276,10 @@ const Explore = ({ mddata }) => {
       <Sidebar
         handleFilterTilesId={handleFilterTilesId}
         filterTilesId={filterTilesId}
+        customData={customData && { ...customData, status: customJobStatus }}
+        onUpload={handleUpload}
+        onUploadSuccess={handleUploadSuccess}
+        onClearCustomData={clearCustomData}
       />
       <Box flex={1} position='relative'>
         <Box h={`calc(100vh - ${H_HEADER}px)`} flex={1}>
@@ -209,7 +327,7 @@ const Explore = ({ mddata }) => {
           <SDMLegend
             labels={labelSDM}
             value={opacityFilter}
-            isDelta={hasDeltaValue}
+            isDelta={!customData && hasDeltaValue}
             handleChange={handleChangeLayerStyle}
           />
           <HotSpotLegend

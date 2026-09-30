@@ -33,6 +33,38 @@ export const LEGEND_HOTSPOT_DESC =
 
 export const UNIT_SDM = 'probability';
 export const UNIT_DELTA = 'change';
+
+// UPLOAD MODAL
+export const UPLOAD_BUTTON = 'Upload presence data';
+export const CLEAR_CUSTOM_DATA_BUTTON = 'Clear custom data';
+export const CUSTOM_DATA_NOTICE = (species = '') =>
+  `Results for ${species} are based on your uploaded data`;
+export const UPLOAD_TITLE = 'Upload species presence data';
+export const UPLOAD_DESCRIPTION =
+  'Upload custom data to run AtlasArena models for your data. Custom data replaces GBIF presence data.';
+export const UPLOAD_SCENARIO_LABEL = 'Scenario';
+export const UPLOAD_SPECIES_LABEL = 'Species';
+export const UPLOAD_DROPZONE_TEXT =
+  'Drop a GeoJSON file here, or click to upload';
+export const UPLOAD_DROPZONE_HINT =
+  'Point features with longitude/latitude coordinates (.geojson or .json)';
+export const UPLOAD_ACCEPT = '.geojson,.json,application/geo+json';
+export const UPLOAD_CANCEL = 'Cancel';
+export const UPLOAD_SUBMIT = 'Upload';
+export const UPLOAD_SUCCESS_TITLE = 'Upload successful';
+export const UPLOAD_SUCCESS_TEXT = (count = 0) =>
+  `${count.toLocaleString('en-US')} points uploaded`;
+export const UPLOAD_DONE = 'Done';
+export const UPLOAD_ERROR_TITLE = 'Upload failed';
+export const UPLOAD_ERROR_TEXT = 'We couldn’t process this file.';
+export const UPLOAD_RETRY = 'Choose a different file';
+// CUSTOM JOB STATUS (sidebar, while custom data is loaded)
+export const JOB_STATUS_TEXT = {
+  SUBMITTED: 'Queued: waiting for the model to start',
+  RUNNING: 'Model running: this can take a few minutes',
+  SUCCEEDED: 'Results ready',
+};
+
 // MODAL
 
 export const FIRST_LINE_MODAL = 'About the virus';
