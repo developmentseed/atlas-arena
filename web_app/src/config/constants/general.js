@@ -169,6 +169,9 @@ export const H_HEADER = 54;
 // LEGEND
 export const W_LEGEND = 232;
 
+// BASEMAP (OpenFreeMap, no key needed)
+export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
+
 // ZOOM VALUES
 export const MIN_ZOOM_MAP = 2;
 export const MAX_ZOOM_MAP = 11;
