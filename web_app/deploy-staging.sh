@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Build the static site and publish it to the staging bucket behind CloudFront.
-# Run from anywhere; needs AWS credentials and NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
-# (in the environment or web_app/.env.local).
+# Run from anywhere; needs AWS credentials. For Google sign-in to work, the
+# staging origin must be in the API's allowedReturnOrigins.
 set -euo pipefail
 
 BUCKET="${STAGING_BUCKET:?set STAGING_BUCKET}"

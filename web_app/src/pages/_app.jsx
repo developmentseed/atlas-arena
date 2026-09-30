@@ -4,6 +4,7 @@ import { ChakraProvider } from '@chakra-ui/react';
 import theme from '@/config/theme';
 import Layout from '@/components/layout';
 import { AppWrapper } from '@/store/context';
+import { AuthProvider } from '@/store/auth';
 import Head from 'next/head';
 import {
   PAGE_TITLE,
@@ -27,11 +28,13 @@ export default function MyApp({ Component, pageProps }) {
         <meta name='keywords' content={PAGE_KEYWORDS} />
         <meta name='author' content={PAGE_AUTHOR} />
       </Head>
-      <AppWrapper>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
-      </AppWrapper>
+      <AuthProvider>
+        <AppWrapper>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </AppWrapper>
+      </AuthProvider>
     </ChakraProvider>
   );
 }
