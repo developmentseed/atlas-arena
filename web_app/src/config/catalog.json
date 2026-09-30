@@ -1,0 +1,945 @@
+{
+  "cog_base_url": "",
+  "viruses": {
+    "junin_virus": {
+      "name": "Junin virus",
+      "color": "yellow"
+    },
+    "guanarito_virus": {
+      "name": "Guanarito virus",
+      "color": "blue"
+    },
+    "machupo_virus": {
+      "name": "Machupo virus",
+      "color": "red"
+    }
+  },
+  "species": {
+    "calomys_musculinus": {
+      "name": "Calomys musculinus",
+      "color": "pink"
+    },
+    "oligoryzomys_flavescens": {
+      "name": "Oligoryzomys flavescens",
+      "color": "green"
+    },
+    "calomys_laucha": {
+      "name": "Calomys laucha",
+      "color": "yellow"
+    },
+    "zygodontomys_brevicauda": {
+      "name": "Zygodontomys brevicauda",
+      "color": "cyan"
+    },
+    "sigmodon_alstoni": {
+      "name": "Sigmodon alstoni",
+      "color": "purple"
+    },
+    "calomys_callosus": {
+      "name": "Calomys callosus",
+      "color": "blue"
+    }
+  },
+  "time_frames": {
+    "ssp5": {
+      "name": "SSP 5 (years 2041-2060)"
+    },
+    "ssp2": {
+      "name": "SSP 2 (years 2041-2060)"
+    },
+    "current": {
+      "name": "Current (year 1990-2010)"
+    },
+    "delta_ssp5": {
+      "name": "Delta SSP 5 - current"
+    },
+    "delta_ssp2": {
+      "name": "Delta SSP 2 - current"
+    }
+  },
+  "models": {
+    "lgbm": {
+      "name": "Light GBM"
+    },
+    "xgb": {
+      "name": "Extra Gradient Boost"
+    },
+    "rf": {
+      "name": "Random Forest"
+    },
+    "et": {
+      "name": "Extra Trees"
+    },
+    "combined": {
+      "name": "Combined"
+    }
+  },
+  "variables": {
+    "probability": {
+      "name": "Probability of presence",
+      "range": [
+        0,
+        1
+      ]
+    },
+    "difference": {
+      "name": "Difference in probabilities",
+      "range": [
+        -1,
+        1
+      ]
+    },
+    "foi": {
+      "name": "Force of infection",
+      "range": [
+        0,
+        0.05
+      ]
+    }
+  },
+  "layers": [
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp5",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_cm_s5_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp5",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_cm_s5_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp5",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_cm_s5_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp5",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_cm_s5_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp5",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_cm_s5_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp5",
+      "model": "combined",
+      "variable": "foi",
+      "path": "j_cm_s5_co_foi.tif",
+      "enabled": false
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp2",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_cm_s2_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp2",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_cm_s2_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp2",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_cm_s2_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp2",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_cm_s2_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp2",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_cm_s2_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "ssp2",
+      "model": "combined",
+      "variable": "foi",
+      "path": "j_cm_s2_co_foi.tif",
+      "enabled": false
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "current",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_cm_cu_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "current",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_cm_cu_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "current",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_cm_cu_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "current",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_cm_cu_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "current",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_cm_cu_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "current",
+      "model": "combined",
+      "variable": "foi",
+      "path": "j_cm_cu_co_foi.tif",
+      "enabled": false
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "delta_ssp5",
+      "model": "combined",
+      "variable": "difference",
+      "path": "j_cm_ds5_co_dp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_musculinus",
+      "time_frame": "delta_ssp2",
+      "model": "combined",
+      "variable": "difference",
+      "path": "j_cm_ds2_co_dp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp5",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_of_s5_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp5",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_of_s5_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp5",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_of_s5_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp5",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_of_s5_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp5",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_of_s5_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp2",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_of_s2_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp2",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_of_s2_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp2",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_of_s2_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp2",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_of_s2_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "ssp2",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_of_s2_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "current",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_of_cu_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "current",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_of_cu_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "current",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_of_cu_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "current",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_of_cu_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "current",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_of_cu_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "delta_ssp5",
+      "model": "combined",
+      "variable": "difference",
+      "path": "j_of_ds5_co_dp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "oligoryzomys_flavescens",
+      "time_frame": "delta_ssp2",
+      "model": "combined",
+      "variable": "difference",
+      "path": "j_of_ds2_co_dp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp5",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_cl_s5_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp5",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_cl_s5_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp5",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_cl_s5_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp5",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_cl_s5_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp5",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_cl_s5_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp2",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_cl_s2_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp2",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_cl_s2_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp2",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_cl_s2_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp2",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_cl_s2_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "ssp2",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_cl_s2_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "current",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "j_cl_cu_lgbm_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "current",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "j_cl_cu_xgb_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "current",
+      "model": "rf",
+      "variable": "probability",
+      "path": "j_cl_cu_rf_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "current",
+      "model": "et",
+      "variable": "probability",
+      "path": "j_cl_cu_et_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "current",
+      "model": "combined",
+      "variable": "probability",
+      "path": "j_cl_cu_co_pp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "delta_ssp5",
+      "model": "combined",
+      "variable": "difference",
+      "path": "j_cl_ds5_co_dp.tif"
+    },
+    {
+      "virus": "junin_virus",
+      "species": "calomys_laucha",
+      "time_frame": "delta_ssp2",
+      "model": "combined",
+      "variable": "difference",
+      "path": "j_cl_ds2_co_dp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp5",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "g_zb_s5_lgbm_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp5",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "g_zb_s5_xgb_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp5",
+      "model": "rf",
+      "variable": "probability",
+      "path": "g_zb_s5_rf_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp5",
+      "model": "et",
+      "variable": "probability",
+      "path": "g_zb_s5_et_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp5",
+      "model": "combined",
+      "variable": "probability",
+      "path": "g_zb_s5_co_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp2",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "g_zb_s2_lgbm_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp2",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "g_zb_s2_xgb_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp2",
+      "model": "rf",
+      "variable": "probability",
+      "path": "g_zb_s2_rf_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp2",
+      "model": "et",
+      "variable": "probability",
+      "path": "g_zb_s2_et_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "ssp2",
+      "model": "combined",
+      "variable": "probability",
+      "path": "g_zb_s2_co_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "current",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "g_zb_cu_lgbm_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "current",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "g_zb_cu_xgb_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "current",
+      "model": "rf",
+      "variable": "probability",
+      "path": "g_zb_cu_rf_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "current",
+      "model": "et",
+      "variable": "probability",
+      "path": "g_zb_cu_et_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "current",
+      "model": "combined",
+      "variable": "probability",
+      "path": "g_zb_cu_co_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "delta_ssp5",
+      "model": "combined",
+      "variable": "difference",
+      "path": "g_zb_ds5_co_dp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "zygodontomys_brevicauda",
+      "time_frame": "delta_ssp2",
+      "model": "combined",
+      "variable": "difference",
+      "path": "g_zb_ds2_co_dp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp5",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "g_sa_s5_lgbm_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp5",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "g_sa_s5_xgb_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp5",
+      "model": "rf",
+      "variable": "probability",
+      "path": "g_sa_s5_rf_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp5",
+      "model": "et",
+      "variable": "probability",
+      "path": "g_sa_s5_et_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp5",
+      "model": "combined",
+      "variable": "probability",
+      "path": "g_sa_s5_co_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp2",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "g_sa_s2_lgbm_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp2",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "g_sa_s2_xgb_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp2",
+      "model": "rf",
+      "variable": "probability",
+      "path": "g_sa_s2_rf_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp2",
+      "model": "et",
+      "variable": "probability",
+      "path": "g_sa_s2_et_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "ssp2",
+      "model": "combined",
+      "variable": "probability",
+      "path": "g_sa_s2_co_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "current",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "g_sa_cu_lgbm_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "current",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "g_sa_cu_xgb_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "current",
+      "model": "rf",
+      "variable": "probability",
+      "path": "g_sa_cu_rf_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "current",
+      "model": "et",
+      "variable": "probability",
+      "path": "g_sa_cu_et_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "current",
+      "model": "combined",
+      "variable": "probability",
+      "path": "g_sa_cu_co_pp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "delta_ssp5",
+      "model": "combined",
+      "variable": "difference",
+      "path": "g_sa_ds5_co_dp.tif"
+    },
+    {
+      "virus": "guanarito_virus",
+      "species": "sigmodon_alstoni",
+      "time_frame": "delta_ssp2",
+      "model": "combined",
+      "variable": "difference",
+      "path": "g_sa_ds2_co_dp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp5",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "m_cc_s5_lgbm_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp5",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "m_cc_s5_xgb_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp5",
+      "model": "rf",
+      "variable": "probability",
+      "path": "m_cc_s5_rf_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp5",
+      "model": "et",
+      "variable": "probability",
+      "path": "m_cc_s5_et_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp5",
+      "model": "combined",
+      "variable": "probability",
+      "path": "m_cc_s5_co_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp2",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "m_cc_s2_lgbm_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp2",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "m_cc_s2_xgb_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp2",
+      "model": "rf",
+      "variable": "probability",
+      "path": "m_cc_s2_rf_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp2",
+      "model": "et",
+      "variable": "probability",
+      "path": "m_cc_s2_et_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "ssp2",
+      "model": "combined",
+      "variable": "probability",
+      "path": "m_cc_s2_co_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "current",
+      "model": "lgbm",
+      "variable": "probability",
+      "path": "m_cc_cu_lgbm_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "current",
+      "model": "xgb",
+      "variable": "probability",
+      "path": "m_cc_cu_xgb_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "current",
+      "model": "rf",
+      "variable": "probability",
+      "path": "m_cc_cu_rf_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "current",
+      "model": "et",
+      "variable": "probability",
+      "path": "m_cc_cu_et_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "current",
+      "model": "combined",
+      "variable": "probability",
+      "path": "m_cc_cu_co_pp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "delta_ssp5",
+      "model": "combined",
+      "variable": "difference",
+      "path": "m_cc_ds5_co_dp.tif"
+    },
+    {
+      "virus": "machupo_virus",
+      "species": "calomys_callosus",
+      "time_frame": "delta_ssp2",
+      "model": "combined",
+      "variable": "difference",
+      "path": "m_cc_ds2_co_dp.tif"
+    }
+  ]
+}
