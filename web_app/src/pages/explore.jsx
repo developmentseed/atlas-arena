@@ -14,8 +14,6 @@ import {
   BASEMAP_STYLE,
   DEFAULT_OPACITY_MULTIPLE,
   DEFAULT_OPACITY_SINGLE,
-  H_HEADER,
-  H_FILTER_BAR,
   MAX_ZOOM_MAP,
   MIN_ZOOM_MAP,
 } from '@/config/constants/general';
@@ -244,7 +242,11 @@ const Explore = ({ mddata }) => {
         .map((i) => ({ title: i.virus, color: i.color }))
     : catalogLabelsHotSpot;
   return (
-    <Flex position='relative' flexDirection={{ base: 'column', md: 'row' }}>
+    <Flex
+      position='relative'
+      h='100%'
+      flexDirection={{ base: 'column', md: 'row' }}
+    >
       <Sidebar
         handleFilterTilesId={handleFilterTilesId}
         filterTilesId={filterTilesId}
@@ -260,14 +262,8 @@ const Explore = ({ mddata }) => {
         showFoi={customJob.showFoi}
         onToggleFoi={() => customJob.setShowFoi((show) => !show)}
       />
-      <Box flex={1} position='relative'>
-        <Box
-          h={{
-            base: `calc(100vh - ${H_HEADER + H_FILTER_BAR}px)`,
-            md: `calc(100vh - ${H_HEADER}px)`,
-          }}
-          flex={1}
-        >
+      <Box flex={1} minH={0} minW={0} position='relative'>
+        <Box h='100%'>
           <Box ref={mapContainerRef} h='100%' w='100%'>
             <Map
               ref={mapRef}
@@ -300,10 +296,7 @@ const Explore = ({ mddata }) => {
         </Box>
         <Box
           position='absolute'
-          maxH={{
-            base: `calc(100vh - ${H_HEADER + H_FILTER_BAR}px)`,
-            md: `calc(100vh - ${H_HEADER}px)`,
-          }}
+          maxH='calc(100% - 32px)'
           bottom={4}
           left={4}
           display='flex'
