@@ -20,3 +20,11 @@ export const getCatalogRows = () => {
       color_virus: viruses[layer.virus].color,
     }));
 };
+
+// time_frames keys ('current', 'ssp2', ...) are the stable ids used in URLs;
+// the rest of the app works with their display names.
+export const timeFrameName = (key) => catalog.time_frames[key]?.name;
+export const timeFrameKey = (name) =>
+  Object.keys(catalog.time_frames).find(
+    (key) => catalog.time_frames[key].name === name
+  );

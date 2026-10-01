@@ -23,6 +23,8 @@ import HotSpotLegend from '@/components/explore/HotSpotLegend';
 import HeadMapLayer from '@/components/explore/HeadMapLayer';
 import DeckOverlay from '@/components/explore/DeckOverlay';
 import { buildCogLayer } from '@/components/explore/cogLayer';
+import PresenceLayer from '@/components/explore/PresenceLayer';
+import { useCustomJob } from '@/components/explore/useCustomJob';
 
 const BASENAME = (process.env.PUBLIC_URL || '').replace('//', '/');
 
@@ -45,6 +47,9 @@ const Explore = ({ mddata }) => {
   const [hasDeltaValue, setHasDeltaValue] = useState(false);
   const [dataFilter, setDataFilter] = useState({});
   const [dataVirusSplit, setDataVirusSplit] = useState([]);
+
+  const customJob = useCustomJob();
+  const { customData } = customJob;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -118,11 +123,28 @@ const Explore = ({ mddata }) => {
     setLayerStyle({ ...tmpOpacityFilter });
   };
 
+  // While custom data is loaded it replaces the catalog SDM layers; the SDM
+  // toggle (off clears the model filter) still hides it.
+  const customItems =
+    customData && customJob.rasterUrl && dataFilter.model
+      ? [
+          {
+            species: customData.species,
+            url: customJob.rasterUrl,
+            range: [0, 1],
+            color: (
+              raw_data.find((i) => i.species === customData.species) || {}
+            ).color,
+          },
+        ]
+      : [];
+  const sdmItems = customData ? customItems : filterTilesId;
+
   // Same default as the legend's opacity slider (SDMLegend's has_many).
-  const speciesCount = new Set(filterTilesId.map((i) => i.species)).size;
+  const speciesCount = new Set(sdmItems.map((i) => i.species)).size;
   const defaultOpacity =
     speciesCount > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
-  const cogLayers = filterTilesId.map((item) =>
+  const cogLayers = sdmItems.map((item) =>
     buildCogLayer({
       item,
       opacity: (opacityFilter[item.species] ?? defaultOpacity) / 100,
@@ -131,7 +153,7 @@ const Explore = ({ mddata }) => {
 
   const labelSDM = sortList(
     getUniqueCombinations(
-      filterTilesId.filter((i) => i.species),
+      sdmItems.filter((i) => i.species),
       'species',
       'color'
     ).map((i) => ({
@@ -162,6 +184,14 @@ const Explore = ({ mddata }) => {
       <Sidebar
         handleFilterTilesId={handleFilterTilesId}
         filterTilesId={filterTilesId}
+        customData={customData}
+        onUpload={customJob.upload}
+        onUploadSuccess={customJob.onUploadSuccess}
+        onFileChange={customJob.previewFile}
+        onClearCustomData={customJob.clear}
+        hasPoints={customJob.hasPoints}
+        showPoints={customJob.showPoints}
+        onTogglePoints={() => customJob.setShowPoints((show) => !show)}
       />
       <Box flex={1} position='relative'>
         <Box h={`calc(100vh - ${H_HEADER}px)`} flex={1}>
@@ -191,6 +221,7 @@ const Explore = ({ mddata }) => {
                 opacity_filter={opacityFilter}
               />
               <DeckOverlay layers={cogLayers} />
+              <PresenceLayer data={customJob.points} />
             </Map>
           </Box>
         </Box>
@@ -209,7 +240,7 @@ const Explore = ({ mddata }) => {
           <SDMLegend
             labels={labelSDM}
             value={opacityFilter}
-            isDelta={hasDeltaValue}
+            isDelta={!customData && hasDeltaValue}
             handleChange={handleChangeLayerStyle}
           />
           <HotSpotLegend

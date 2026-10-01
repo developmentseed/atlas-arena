@@ -1,12 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAppContext } from '@/store/context';
 import FormControlCheckBoxSpecies from '@/components/custom/FormControlCheckBoxSpecies';
 import FormControlSelect from '@/components/custom/FormControlSelect';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
 import FormControlText from '@/components/custom/FormControlText';
-import { Box, Icon, IconButton, Flex } from '@chakra-ui/react';
-import { FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import UploadModal from '@/components/explore/UploadModal';
+import { RequireAuth } from '@/store/auth';
+import {
+  Box,
+  Icon,
+  IconButton,
+  Flex,
+  Button,
+  Spinner,
+  Stack,
+  Text,
+} from '@chakra-ui/react';
+import { FiCheck, FiChevronLeft, FiChevronRight, FiX } from 'react-icons/fi';
 
 import {
   ALL_VIRUS,
@@ -26,16 +37,44 @@ import {
   SPECIES_INFO,
   MODEL_LABEL,
   MODEL_INFO,
+  UPLOAD_BUTTON,
+  CLEAR_CUSTOM_DATA_BUTTON,
+  CUSTOM_DATA_NOTICE,
+  JOB_STATUS_TEXT,
+  SHOW_POINTS_LABEL,
 } from '@/config/constants/constants.explore';
+import { LuUpload } from 'react-icons/lu';
 
+// Shared by the locked controls (aria-describedby) while custom data is shown
+const CUSTOM_DATA_NOTICE_ID = 'custom-data-notice';
 const DEFAULT_SDM_TOGGLE = true;
-const Sidebar = ({ handleFilterTilesId, filterTilesId }) => {
+// customData: details of the last successful custom upload, or null
+const Sidebar = ({
+  handleFilterTilesId,
+  filterTilesId,
+  customData = null,
+  onUpload,
+  onUploadSuccess,
+  onFileChange,
+  onClearCustomData,
+  hasPoints = false,
+  showPoints = true,
+  onTogglePoints,
+}) => {
   const { allVirus, allSpecies, allTimeFrame, allModels } = useAppContext();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const uploadButtonRef = useRef(null);
+
+  // the Clear button disappears once clicked, so keep focus in the panel
+  const handleClearCustomData = () => {
+    onClearCustomData();
+    if (uploadButtonRef.current) uploadButtonRef.current.focus();
   };
 
   const [selectedVirus, setSelectedVirus] = useState('');
@@ -209,7 +248,7 @@ const Sidebar = ({ handleFilterTilesId, filterTilesId }) => {
         transition='all 0.3s ease'
       >
         {!isCollapsed && (
-          <>
+          <Box display='flex' flexDirection='column' mb={4} h='full'>
             <FormControlText label={SIDEBAR_TITLE} text={SIDEBAR_SUBTITLE} />
             <FormControlSelect
               label={VIRUS_LABEL}
@@ -224,6 +263,9 @@ const Sidebar = ({ handleFilterTilesId, filterTilesId }) => {
               options={allTimeFrame}
               info={TIMEFRAME_INFO}
               handleAction={handleTimeFrameChange}
+              isLocked={!!customData}
+              lockedValue={customData ? customData.scenario : ''}
+              describedBy={CUSTOM_DATA_NOTICE_ID}
             />
             <FormControlSwitch
               label={SDM_TOGGLE_LABEL}
@@ -238,6 +280,13 @@ const Sidebar = ({ handleFilterTilesId, filterTilesId }) => {
               handleAction={handleSpeciesChange}
               filterValue={selectedVirus}
               isDisabled={!selectedHotSpot}
+              isLocked={!!customData}
+              notice={
+                customData && customData.species
+                  ? CUSTOM_DATA_NOTICE(customData.species)
+                  : ''
+              }
+              noticeId={CUSTOM_DATA_NOTICE_ID}
             />
             <FormControlSelect
               label={MODEL_LABEL}
@@ -246,8 +295,58 @@ const Sidebar = ({ handleFilterTilesId, filterTilesId }) => {
               value={selectedModel}
               handleAction={handleModelChange}
               isDisabled={!selectedHotSpot}
+              isLocked={!!customData}
+              describedBy={CUSTOM_DATA_NOTICE_ID}
             />
-          </>
+            <RequireAuth>
+              <Stack spacing={2} mt='auto' pt={4}>
+                {customData && hasPoints && (
+                  <FormControlSwitch
+                    label={SHOW_POINTS_LABEL}
+                    value={showPoints}
+                    handleAction={onTogglePoints}
+                  />
+                )}
+                {customData && JOB_STATUS_TEXT[customData.status] && (
+                  <Flex
+                    role='status'
+                    alignItems='center'
+                    gap={2}
+                    fontSize='sm'
+                    fontWeight={600}
+                    color='blue.600'
+                  >
+                    {customData.status === 'SUCCEEDED' ? (
+                      <Icon as={FiCheck} boxSize={4} aria-hidden='true' />
+                    ) : (
+                      <Spinner size='xs' aria-hidden='true' />
+                    )}
+                    <Text>{JOB_STATUS_TEXT[customData.status]}</Text>
+                  </Flex>
+                )}
+                {customData && (
+                  <Button
+                    variant='outline'
+                    colorScheme='blue'
+                    bg='white'
+                    leftIcon={<Icon as={FiX} />}
+                    onClick={handleClearCustomData}
+                  >
+                    {CLEAR_CUSTOM_DATA_BUTTON}
+                  </Button>
+                )}
+                <Button
+                  ref={uploadButtonRef}
+                  variant='solid'
+                  colorScheme='blue'
+                  leftIcon={<Icon as={LuUpload} />}
+                  onClick={() => setUploadModalOpen(true)}
+                >
+                  {UPLOAD_BUTTON}
+                </Button>
+              </Stack>
+            </RequireAuth>
+          </Box>
         )}
       </Box>
 
@@ -264,6 +363,15 @@ const Sidebar = ({ handleFilterTilesId, filterTilesId }) => {
         zIndex={1000}
         display={{ base: 'block', md: 'none' }}
       />
+      <RequireAuth>
+        <UploadModal
+          isOpen={uploadModalOpen}
+          onClose={() => setUploadModalOpen(false)}
+          onUpload={onUpload}
+          onUploadSuccess={onUploadSuccess}
+          onFileChange={onFileChange}
+        />
+      </RequireAuth>
     </Flex>
   );
 };
