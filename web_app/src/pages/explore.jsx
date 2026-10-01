@@ -1,16 +1,7 @@
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Flex, Box, useToast } from '@chakra-ui/react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Flex, Box } from '@chakra-ui/react';
 import Map from 'react-map-gl/maplibre';
 import { useAppContext } from '@/store/context';
-import { useAuth } from '@/store/auth';
-import {
-  POLL_INTERVAL_MS,
-  TERMINAL_STATUSES,
-  getJob,
-  pickRaster,
-  readPresence,
-  submitJob,
-} from '@/libs/jobs';
 import { dynamicFilter, getUniqueCombinations, sortList } from '@/utils/utils';
 import Sidebar from '@/components/explore/Sidebar';
 import axios from 'axios';
@@ -32,6 +23,8 @@ import HotSpotLegend from '@/components/explore/HotSpotLegend';
 import HeadMapLayer from '@/components/explore/HeadMapLayer';
 import DeckOverlay from '@/components/explore/DeckOverlay';
 import { buildCogLayer } from '@/components/explore/cogLayer';
+import PresenceLayer from '@/components/explore/PresenceLayer';
+import { useCustomJob } from '@/components/explore/useCustomJob';
 
 const BASENAME = (process.env.PUBLIC_URL || '').replace('//', '/');
 
@@ -55,93 +48,8 @@ const Explore = ({ mddata }) => {
   const [dataFilter, setDataFilter] = useState({});
   const [dataVirusSplit, setDataVirusSplit] = useState([]);
 
-  // Custom upload: { species, scenario, pointCount, jobId } while the sidebar
-  // is locked to it, and its raster once the model run has finished.
-  const [customData, setCustomData] = useState(null);
-  const [customRasterUrl, setCustomRasterUrl] = useState(null);
-  // SUBMITTED | RUNNING | SUCCEEDED (only once the raster is available)
-  const [customJobStatus, setCustomJobStatus] = useState(null);
-  const toast = useToast();
-  const { status: authStatus } = useAuth();
-
-  const clearCustomData = useCallback(() => {
-    setCustomData(null);
-    setCustomRasterUrl(null);
-    setCustomJobStatus(null);
-  }, []);
-
-  // Uploads belong to the signed-in user.
-  useEffect(() => {
-    if (authStatus !== 'signedIn') clearCustomData();
-  }, [authStatus, clearCustomData]);
-
-  const handleUpload = async ({ species, scenario, file }) => {
-    const { fc, pointCount } = await readPresence(file);
-    const jobId = await submitJob({
-      species,
-      timeFrame: scenario,
-      presence: fc,
-    });
-    return { pointCount, jobId };
-  };
-
-  const handleUploadSuccess = ({ species, scenario, pointCount, jobId }) => {
-    setCustomRasterUrl(null);
-    setCustomJobStatus('SUBMITTED');
-    setCustomData({ species, scenario, pointCount, jobId });
-  };
-
-  const customJobId = customData && customData.jobId;
-  const customTimeFrame = customData && customData.scenario;
-  useEffect(() => {
-    if (!customJobId) return;
-    let cancelled = false;
-    let timer = null;
-
-    const fail = (message) => {
-      clearInterval(timer);
-      toast({
-        status: 'error',
-        title: 'Model run failed',
-        description: message,
-        isClosable: true,
-        duration: 8000,
-      });
-      clearCustomData();
-    };
-
-    const poll = async () => {
-      let job;
-      try {
-        job = await getJob(customJobId);
-      } catch (err) {
-        if (!cancelled) fail(err.response?.data?.detail || err.message);
-        return;
-      }
-      if (cancelled) return;
-      if (!TERMINAL_STATUSES.includes(job.status)) {
-        setCustomJobStatus(job.status);
-        return;
-      }
-      clearInterval(timer);
-      if (job.status !== 'SUCCEEDED') {
-        fail(job.error || `Job status ${job.status}`);
-        return;
-      }
-      const url = pickRaster(job.rasters, customTimeFrame);
-      if (url) {
-        setCustomRasterUrl(url);
-        setCustomJobStatus('SUCCEEDED');
-      } else fail('The model run produced no raster for this scenario');
-    };
-
-    poll();
-    timer = setInterval(poll, POLL_INTERVAL_MS);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [customJobId, customTimeFrame, toast, clearCustomData]);
+  const customJob = useCustomJob();
+  const { customData } = customJob;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -218,11 +126,11 @@ const Explore = ({ mddata }) => {
   // While custom data is loaded it replaces the catalog SDM layers; the SDM
   // toggle (off clears the model filter) still hides it.
   const customItems =
-    customData && customRasterUrl && dataFilter.model
+    customData && customJob.rasterUrl && dataFilter.model
       ? [
           {
             species: customData.species,
-            url: customRasterUrl,
+            url: customJob.rasterUrl,
             range: [0, 1],
             color: (
               raw_data.find((i) => i.species === customData.species) || {}
@@ -276,10 +184,14 @@ const Explore = ({ mddata }) => {
       <Sidebar
         handleFilterTilesId={handleFilterTilesId}
         filterTilesId={filterTilesId}
-        customData={customData && { ...customData, status: customJobStatus }}
-        onUpload={handleUpload}
-        onUploadSuccess={handleUploadSuccess}
-        onClearCustomData={clearCustomData}
+        customData={customData}
+        onUpload={customJob.upload}
+        onUploadSuccess={customJob.onUploadSuccess}
+        onFileChange={customJob.previewFile}
+        onClearCustomData={customJob.clear}
+        hasPoints={customJob.hasPoints}
+        showPoints={customJob.showPoints}
+        onTogglePoints={() => customJob.setShowPoints((show) => !show)}
       />
       <Box flex={1} position='relative'>
         <Box h={`calc(100vh - ${H_HEADER}px)`} flex={1}>
@@ -309,6 +221,7 @@ const Explore = ({ mddata }) => {
                 opacity_filter={opacityFilter}
               />
               <DeckOverlay layers={cogLayers} />
+              <PresenceLayer data={customJob.points} />
             </Map>
           </Box>
         </Box>

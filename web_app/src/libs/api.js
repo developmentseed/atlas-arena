@@ -1,15 +1,20 @@
 import axios from 'axios';
 import { API_URL } from '@/config/constants/general';
+import { readHashParams, setHashParams } from '@/libs/hashParams';
 
 // Sign-in goes through the atlasarena-model-infra API: GET {api}/auth/login
 // sends the browser to Google and back to the API, which then redirects here
 // with the outcome in the URL fragment: #token=<session token> or
 // #error=<reason>. The token lives in sessionStorage (this tab only, gone when
-// it closes) and is sent as the Bearer token on every call.
+// it closes) and is sent as the Bearer token on every call. The API replaces
+// the whole fragment, so any page state in it (e.g. #job=...) is stashed
+// before leaving and put back on return.
 
 export const authConfigured = Boolean(API_URL);
 
 const TOKEN_KEY = 'atlasarena.sessionToken';
+const RETURN_HASH_KEY = 'atlasarena.returnHash';
+const SIGN_IN_PARAMS = ['token', 'error', 'email'];
 
 export function getToken() {
   try {
@@ -29,6 +34,13 @@ export function setToken(token) {
 }
 
 export function signInUrl() {
+  try {
+    if (window.location.hash) {
+      sessionStorage.setItem(RETURN_HASH_KEY, window.location.hash);
+    } else sessionStorage.removeItem(RETURN_HASH_KEY);
+  } catch {
+    // Storage blocked: the page state is lost across sign-in.
+  }
   const returnTo = window.location.origin + window.location.pathname;
   return new URL(
     `auth/login?return_to=${encodeURIComponent(returnTo)}`,
@@ -45,12 +57,19 @@ const SIGN_IN_ERRORS = {
 export function readSignInFragment() {
   const params = new URLSearchParams(window.location.hash.slice(1));
   if (!params.has('token') && !params.has('error')) return null;
-  // Drop the fragment so the token isn't left in the address bar or history.
-  window.history.replaceState(
-    window.history.state,
-    '',
-    window.location.pathname + window.location.search
-  );
+  // Swap the token out of the address bar and history for the page state
+  // stashed by signInUrl().
+  let stashed = {};
+  try {
+    stashed = readHashParams(sessionStorage.getItem(RETURN_HASH_KEY) || '');
+    sessionStorage.removeItem(RETURN_HASH_KEY);
+  } catch {
+    // Storage blocked: nothing was stashed.
+  }
+  setHashParams({
+    ...Object.fromEntries(SIGN_IN_PARAMS.map((key) => [key, null])),
+    ...stashed,
+  });
   if (params.has('token')) return { token: params.get('token') };
   const error = params.get('error');
   const who = params.get('email') ? ` (${params.get('email')})` : '';
@@ -63,7 +82,10 @@ export function setUnauthorizedHandler(fn) {
   onUnauthorized = fn;
 }
 
-export async function apiFetch(path, { method = 'GET', data, auth = true, ...rest } = {}) {
+export async function apiFetch(
+  path,
+  { method = 'GET', data, auth = true, ...rest } = {}
+) {
   const headers = { ...rest.headers };
   const token = getToken();
   if (auth && token) headers.Authorization = `Bearer ${token}`;

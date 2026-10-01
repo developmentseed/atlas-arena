@@ -75,13 +75,15 @@ const StatusMessage = ({ icon, iconBg, title, text, role }) => (
 
 // onUpload({ scenario, species, file }) should return a promise that resolves
 // to { pointCount, ... } on success and rejects on failure; onUploadSuccess is
-// then called with the upload details, merged over what onUpload resolved to. `initialStatus` lets a
-// state be previewed before the upload is wired up.
+// then called with the upload details, merged over what onUpload resolved to.
+// onFileChange(file | null) reports the chosen file as it changes.
+// `initialStatus` lets a state be previewed before the upload is wired up.
 const UploadModal = ({
   isOpen,
   onClose,
   onUpload = null,
   onUploadSuccess = null,
+  onFileChange = null,
   accept = UPLOAD_ACCEPT,
   initialStatus = STATUS.FORM,
 }) => {
@@ -107,10 +109,15 @@ const UploadModal = ({
 
   const selectedSpecies = species || (allSpecies[0] && allSpecies[0].key) || '';
 
+  const chooseFile = (next) => {
+    setFile(next);
+    if (onFileChange) onFileChange(next);
+  };
+
   const handleClose = () => {
     setScenario(DEFAULT_TIME);
     setSpecies('');
-    setFile(null);
+    chooseFile(null);
     setIsDragging(false);
     setStatus(initialStatus);
     setPointCount(0);
@@ -118,12 +125,12 @@ const UploadModal = ({
   };
 
   const handleRetry = () => {
-    setFile(null);
+    chooseFile(null);
     setStatus(STATUS.FORM);
   };
 
   const handleFileChange = (event) => {
-    setFile(event.target.files[0] || null);
+    chooseFile(event.target.files[0] || null);
   };
 
   const handleDragOver = (event) => {
@@ -139,7 +146,7 @@ const UploadModal = ({
     event.preventDefault();
     setIsDragging(false);
     const dropped = event.dataTransfer.files[0];
-    if (dropped) setFile(dropped);
+    if (dropped) chooseFile(dropped);
   };
 
   const handleUpload = async () => {

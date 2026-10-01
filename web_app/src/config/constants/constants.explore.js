@@ -60,10 +60,15 @@ export const UPLOAD_ERROR_TEXT = 'We couldn’t process this file.';
 export const UPLOAD_RETRY = 'Choose a different file';
 // CUSTOM JOB STATUS (sidebar, while custom data is loaded)
 export const JOB_STATUS_TEXT = {
+  LOADING: 'Loading model run',
   SUBMITTED: 'Queued: waiting for the model to start',
   RUNNING: 'Model running: this can take a few minutes',
   SUCCEEDED: 'Results ready',
 };
+export const SHOW_POINTS_LABEL = 'Show uploaded points';
+export const SIGN_IN_TO_VIEW_JOB = 'Sign in to view this model run';
+export const JOB_FAILED_TITLE = 'Model run failed';
+export const JOB_NOT_FOUND_TITLE = 'Model run not found';
 
 // MODAL
 

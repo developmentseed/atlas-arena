@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { apiFetch } from '@/libs/api';
 
 // Custom-data model runs on the atlasarena-model-infra API: POST jobs with the
@@ -17,13 +18,13 @@ const JOB_SETTINGS = {
   seed: 42,
 };
 
-// Timeframe display name (catalog.json time_frames) -> API scenario.
-const toScenario = (timeFrame = '') => {
-  const name = timeFrame.toLowerCase();
-  if (name.startsWith('ssp 2')) return 'SSP2';
-  if (name.startsWith('ssp 5')) return 'SSP5';
-  return 'Current';
-};
+// Scenario key (catalog.json time_frames) -> API scenario.
+const API_SCENARIOS = { current: 'Current', ssp2: 'SSP2', ssp5: 'SSP5' };
+export const isScenario = (key) => key in API_SCENARIOS;
+const toScenario = (key) => API_SCENARIOS[key] || API_SCENARIOS.current;
+
+// Job ids are 12 hex characters (atlasarena.config).
+export const isJobId = (id) => /^[0-9a-f]{12}$/.test(id || '');
 
 // Reads and checks a presence file; throws if the API would reject it.
 export const readPresence = async (file) => {
@@ -42,8 +43,12 @@ export const readPresence = async (file) => {
 };
 
 // Returns the new job's id.
-export const submitJob = async ({ species, timeFrame, presence }) => {
-  const scenario = toScenario(timeFrame);
+export const submitJob = async ({
+  species,
+  scenario: scenarioKey,
+  presence,
+}) => {
+  const scenario = toScenario(scenarioKey);
   // The API always needs Current; the future scenarios are modelled against it.
   const scenarios =
     scenario === 'Current' ? ['Current'] : ['Current', scenario];
@@ -59,7 +64,7 @@ export const submitJob = async ({ species, timeFrame, presence }) => {
   return data.job_id;
 };
 
-// { job_id, status, error, rasters: { stem: url } | null, ... }
+// { job_id, status, species_name, error, presence_url, rasters, ... }
 export const getJob = async (jobId) => {
   const { data } = await apiFetch(`jobs/${encodeURIComponent(jobId)}`);
   return data;
@@ -67,11 +72,18 @@ export const getJob = async (jobId) => {
 
 // Probability raster for the timeframe: stems are <species_slug>_<Scenario>
 // (e.g. calomys_musculinus_SSP2), next to _diff_, _foi_ and _hotspots_ ones.
-export const pickRaster = (rasters, timeFrame) => {
-  const suffix = `_${toScenario(timeFrame)}`.toLowerCase();
+export const pickRaster = (rasters, scenarioKey) => {
+  const suffix = `_${toScenario(scenarioKey)}`.toLowerCase();
   const stem = Object.keys(rasters || {}).find(
     (key) =>
       key.toLowerCase().endsWith(suffix) && !/_(diff|foi|hotspots)_/i.test(key)
   );
   return stem ? rasters[stem] : null;
+};
+
+// The presence GeoJSON behind a job's presigned presence_url. Plain axios: an
+// Authorization header would make S3 reject the presigned request.
+export const fetchPresence = async (url) => {
+  const { data } = await axios.get(url);
+  return data;
 };

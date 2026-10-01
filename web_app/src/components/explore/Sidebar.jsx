@@ -41,6 +41,7 @@ import {
   CLEAR_CUSTOM_DATA_BUTTON,
   CUSTOM_DATA_NOTICE,
   JOB_STATUS_TEXT,
+  SHOW_POINTS_LABEL,
 } from '@/config/constants/constants.explore';
 import { LuUpload } from 'react-icons/lu';
 
@@ -54,7 +55,11 @@ const Sidebar = ({
   customData = null,
   onUpload,
   onUploadSuccess,
+  onFileChange,
   onClearCustomData,
+  hasPoints = false,
+  showPoints = true,
+  onTogglePoints,
 }) => {
   const { allVirus, allSpecies, allTimeFrame, allModels } = useAppContext();
 
@@ -276,7 +281,11 @@ const Sidebar = ({
               filterValue={selectedVirus}
               isDisabled={!selectedHotSpot}
               isLocked={!!customData}
-              notice={customData ? CUSTOM_DATA_NOTICE(customData.species) : ''}
+              notice={
+                customData && customData.species
+                  ? CUSTOM_DATA_NOTICE(customData.species)
+                  : ''
+              }
               noticeId={CUSTOM_DATA_NOTICE_ID}
             />
             <FormControlSelect
@@ -291,6 +300,13 @@ const Sidebar = ({
             />
             <RequireAuth>
               <Stack spacing={2} mt='auto' pt={4}>
+                {customData && hasPoints && (
+                  <FormControlSwitch
+                    label={SHOW_POINTS_LABEL}
+                    value={showPoints}
+                    handleAction={onTogglePoints}
+                  />
+                )}
                 {customData && JOB_STATUS_TEXT[customData.status] && (
                   <Flex
                     role='status'
@@ -353,6 +369,7 @@ const Sidebar = ({
           onClose={() => setUploadModalOpen(false)}
           onUpload={onUpload}
           onUploadSuccess={onUploadSuccess}
+          onFileChange={onFileChange}
         />
       </RequireAuth>
     </Flex>
