@@ -25,6 +25,11 @@ import DeckOverlay from '@/components/explore/DeckOverlay';
 import { buildCogLayer } from '@/components/explore/cogLayer';
 import PresenceLayer from '@/components/explore/PresenceLayer';
 import { useCustomJob } from '@/components/explore/useCustomJob';
+import { FOI_RANGE } from '@/libs/catalog';
+import {
+  LEGEND_FOI_TITLE,
+  LEGEND_FOI_TICKS,
+} from '@/config/constants/constants.explore';
 
 const BASENAME = (process.env.PUBLIC_URL || '').replace('//', '/');
 
@@ -144,12 +149,53 @@ const Explore = ({ mddata }) => {
   const speciesCount = new Set(sdmItems.map((i) => i.species)).size;
   const defaultOpacity =
     speciesCount > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
-  const cogLayers = sdmItems.map((item) =>
+  const sdmLayers = sdmItems.map((item) =>
     buildCogLayer({
       item,
       opacity: (opacityFilter[item.species] ?? defaultOpacity) / 100,
     })
   );
+
+  // A custom job's FOI outputs, per virus, following the Virus dropdown. They
+  // replace the catalog hotspots while it's loaded. Opacity keys: the virus
+  // name for hotspots (as the catalog hotspot legend), `<virus> FOI` for FOI.
+  const foiLayers = customJob.foiLayers.filter(
+    (i) => dataFilter.virus === ALL_VIRUS || dataFilter.virus === i.virus
+  );
+  const shownFoi = customJob.showFoi ? foiLayers : [];
+  const foiOpacityKey = (virus) => `${virus} FOI`;
+  const foiDefaultOpacity =
+    shownFoi.length > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
+  const cogLayers = [
+    ...sdmLayers,
+    ...shownFoi
+      .filter((i) => i.foiUrl)
+      .map((i) =>
+        buildCogLayer({
+          item: { url: i.foiUrl, range: FOI_RANGE, color: i.color },
+          opacity:
+            (opacityFilter[foiOpacityKey(i.virus)] ?? foiDefaultOpacity) / 100,
+        })
+      ),
+    ...foiLayers
+      .filter((i) => i.hotspotUrl)
+      .map((i) =>
+        buildCogLayer({
+          item: {
+            url: i.hotspotUrl,
+            range: [0, 1],
+            color: i.color,
+            mask: true,
+          },
+          opacity: (opacityFilter[i.virus] ?? DEFAULT_OPACITY_MULTIPLE) / 100,
+        })
+      ),
+  ];
+  const labelsFoi = shownFoi.map((i) => ({
+    title: foiOpacityKey(i.virus),
+    name: i.virus,
+    color: i.color,
+  }));
 
   const labelSDM = sortList(
     getUniqueCombinations(
@@ -163,7 +209,7 @@ const Explore = ({ mddata }) => {
     'title'
   );
 
-  const labelsHotSpot = sortList(
+  const catalogLabelsHotSpot = sortList(
     getUniqueCombinations(
       raw_data
         .filter((i) => i.virus && dataFilter.hotspot)
@@ -179,6 +225,11 @@ const Explore = ({ mddata }) => {
     })),
     'title'
   );
+  const labelsHotSpot = customData
+    ? foiLayers
+        .filter((i) => i.hotspotUrl)
+        .map((i) => ({ title: i.virus, color: i.color }))
+    : catalogLabelsHotSpot;
   return (
     <Flex position='relative' flexDirection={{ base: 'column', md: 'row' }}>
       <Sidebar
@@ -192,6 +243,9 @@ const Explore = ({ mddata }) => {
         hasPoints={customJob.hasPoints}
         showPoints={customJob.showPoints}
         onTogglePoints={() => customJob.setShowPoints((show) => !show)}
+        hasFoi={customJob.foiLayers.length > 0}
+        showFoi={customJob.showFoi}
+        onToggleFoi={() => customJob.setShowFoi((show) => !show)}
       />
       <Box flex={1} position='relative'>
         <Box h={`calc(100vh - ${H_HEADER}px)`} flex={1}>
@@ -208,14 +262,14 @@ const Explore = ({ mddata }) => {
               <FoiVectorLayer
                 jsonData={foiHotspot}
                 raw_data={raw_data}
-                hotspot={dataFilter.hotspot}
+                hotspot={!customData && dataFilter.hotspot}
                 time_frame={dataFilter.time_frame}
                 virus={dataFilter.virus}
                 opacity_filter={opacityFilter}
               />
               <HeadMapLayer
                 dataVirusSplit={dataVirusSplit}
-                hotspot={dataFilter.hotspot}
+                hotspot={!customData && dataFilter.hotspot}
                 time_frame={dataFilter.time_frame}
                 virus={dataFilter.virus}
                 opacity_filter={opacityFilter}
@@ -241,6 +295,13 @@ const Explore = ({ mddata }) => {
             labels={labelSDM}
             value={opacityFilter}
             isDelta={!customData && hasDeltaValue}
+            handleChange={handleChangeLayerStyle}
+          />
+          <SDMLegend
+            labels={labelsFoi}
+            value={opacityFilter}
+            heading={LEGEND_FOI_TITLE}
+            ticks={LEGEND_FOI_TICKS}
             handleChange={handleChangeLayerStyle}
           />
           <HotSpotLegend

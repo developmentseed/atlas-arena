@@ -28,3 +28,17 @@ export const timeFrameKey = (name) =>
   Object.keys(catalog.time_frames).find(
     (key) => catalog.time_frames[key].name === name
   );
+
+// A virus named in model outputs (a slug like 'junin' or 'junin_virus') as its
+// catalog name and colour, falling back to a readable name and default colour.
+export const findVirus = (slug) => {
+  const key = [slug, `${slug}_virus`].find((k) => catalog.viruses[k]);
+  if (key) return catalog.viruses[key];
+  const name = slug.replace(/_/g, ' ');
+  return {
+    name: name.charAt(0).toUpperCase() + name.slice(1),
+    color: 'default',
+  };
+};
+
+export const FOI_RANGE = catalog.variables.foi.range;

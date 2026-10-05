@@ -15,6 +15,9 @@ const MIN_POINTS = 20;
 const JOB_SETTINGS = {
   pseudo_absence: { n_replicates: 2, min_distance_km: 0 },
   sdm: { models: ['rf', 'et'], cv: 2, feature_selection_mode: 'none' },
+  // Always run force of infection; the API fills in its inputs (params CSV,
+  // population rasters) from the deployment's defaults.
+  foi: { enabled: true },
   seed: 42,
 };
 
@@ -79,6 +82,22 @@ export const pickRaster = (rasters, scenarioKey) => {
       key.toLowerCase().endsWith(suffix) && !/_(diff|foi|hotspots)_/i.test(key)
   );
   return stem ? rasters[stem] : null;
+};
+
+// FOI outputs for the timeframe, one entry per virus the species has FOI
+// parameters for: stems are <species_slug>__<virus_slug>_foi_<scenario> and
+// ..._hotspots_<scenario>. Returns [{ virusSlug, foi, hotspots }] (URLs).
+export const foiRasters = (rasters, scenarioKey) => {
+  const scenario = toScenario(scenarioKey).toLowerCase();
+  const pattern = new RegExp(`^(.*)__(.+?)_(foi|hotspots)_${scenario}$`);
+  const byVirus = {};
+  Object.entries(rasters || {}).forEach(([stem, url]) => {
+    const match = stem.toLowerCase().match(pattern);
+    if (!match) return;
+    const [, , virusSlug, kind] = match;
+    byVirus[virusSlug] = { virusSlug, ...byVirus[virusSlug], [kind]: url };
+  });
+  return Object.values(byVirus);
 };
 
 // The presence GeoJSON behind a job's presigned presence_url. Plain axios: an

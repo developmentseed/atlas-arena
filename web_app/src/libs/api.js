@@ -5,20 +5,38 @@ import { readHashParams, setHashParams } from '@/libs/hashParams';
 // Sign-in goes through the atlasarena-model-infra API: GET {api}/auth/login
 // sends the browser to Google and back to the API, which then redirects here
 // with the outcome in the URL fragment: #token=<session token> or
-// #error=<reason>. The token lives in sessionStorage (this tab only, gone when
-// it closes) and is sent as the Bearer token on every call. The API replaces
+// #error=<reason>. The token lives in localStorage, shared by every tab and
+// kept until it expires (the API's session TTL), and is sent as the Bearer
+// token on every call. The API replaces
 // the whole fragment, so any page state in it (e.g. #job=...) is stashed
 // before leaving and put back on return.
 
 export const authConfigured = Boolean(API_URL);
 
-const TOKEN_KEY = 'atlasarena.sessionToken';
+export const TOKEN_KEY = 'atlasarena.sessionToken';
 const RETURN_HASH_KEY = 'atlasarena.returnHash';
 const SIGN_IN_PARAMS = ['token', 'error', 'email'];
 
+// Whether a session token (a JWT) is past its `exp`. Unreadable tokens count
+// as live; the API has the final say.
+function isExpired(token) {
+  try {
+    const payload = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    const { exp } = JSON.parse(atob(payload));
+    return typeof exp === 'number' && exp * 1000 <= Date.now();
+  } catch {
+    return false;
+  }
+}
+
 export function getToken() {
   try {
-    return sessionStorage.getItem(TOKEN_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token && isExpired(token)) {
+      localStorage.removeItem(TOKEN_KEY);
+      return null;
+    }
+    return token;
   } catch {
     return null;
   }
@@ -26,8 +44,8 @@ export function getToken() {
 
 export function setToken(token) {
   try {
-    if (token) sessionStorage.setItem(TOKEN_KEY, token);
-    else sessionStorage.removeItem(TOKEN_KEY);
+    if (token) localStorage.setItem(TOKEN_KEY, token);
+    else localStorage.removeItem(TOKEN_KEY);
   } catch {
     // Storage blocked: the token just won't survive a reload.
   }

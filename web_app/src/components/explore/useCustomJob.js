@@ -2,11 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useToast } from '@chakra-ui/react';
 import { useAuth } from '@/store/auth';
 import { setHashParams, useHashParams } from '@/libs/hashParams';
-import { timeFrameKey, timeFrameName } from '@/libs/catalog';
+import { findVirus, timeFrameKey, timeFrameName } from '@/libs/catalog';
 import {
   POLL_INTERVAL_MS,
   TERMINAL_STATUSES,
   fetchPresence,
+  foiRasters,
   getJob,
   isJobId,
   isScenario,
@@ -42,6 +43,7 @@ export const useCustomJob = () => {
   const presenceRef = useRef(presence);
   presenceRef.current = presence;
   const [showPoints, setShowPoints] = useState(true);
+  const [showFoi, setShowFoi] = useState(true);
   // Points of the file picked in the upload modal, before it's submitted.
   const [previewFc, setPreviewFc] = useState(null);
   const previewFileRef = useRef(null);
@@ -79,6 +81,7 @@ export const useCustomJob = () => {
 
   useEffect(() => {
     setShowPoints(true);
+    setShowFoi(true);
   }, [jobId]);
 
   useEffect(() => {
@@ -177,6 +180,7 @@ export const useCustomJob = () => {
   const clear = () =>
     setHashParams({ job: null, scenario: null }, { push: true });
 
+  const succeeded = active && job?.status === 'SUCCEEDED';
   const jobPresence = active && presence?.jobId === jobId ? presence.fc : null;
 
   return {
@@ -189,10 +193,19 @@ export const useCustomJob = () => {
           status: job ? job.status : 'LOADING',
         }
       : null,
-    rasterUrl:
-      active && job?.status === 'SUCCEEDED'
-        ? pickRaster(job.rasters, scenario)
-        : null,
+    rasterUrl: succeeded ? pickRaster(job.rasters, scenario) : null,
+    // [{ virus (catalog name), color, foiUrl, hotspotUrl }] once it succeeded;
+    // empty when the species has no FOI parameters.
+    foiLayers: succeeded
+      ? foiRasters(job.rasters, scenario).map(
+          ({ virusSlug, foi, hotspots }) => {
+            const { name, color } = findVirus(virusSlug);
+            return { virus: name, color, foiUrl: foi, hotspotUrl: hotspots };
+          }
+        )
+      : [],
+    showFoi,
+    setShowFoi,
     points: previewFc || (showPoints ? jobPresence : null),
     hasPoints: Boolean(jobPresence),
     showPoints,
