@@ -42,6 +42,7 @@ import {
   CUSTOM_DATA_NOTICE,
   JOB_STATUS_TEXT,
   SHOW_POINTS_LABEL,
+  SHOW_FOI_LABEL,
 } from '@/config/constants/constants.explore';
 import { LuUpload } from 'react-icons/lu';
 
@@ -60,6 +61,9 @@ const Sidebar = ({
   hasPoints = false,
   showPoints = true,
   onTogglePoints,
+  hasFoi = false,
+  showFoi = true,
+  onToggleFoi,
 }) => {
   const { allVirus, allSpecies, allTimeFrame, allModels } = useAppContext();
 
@@ -300,6 +304,13 @@ const Sidebar = ({
             />
             <RequireAuth>
               <Stack spacing={2} mt='auto' pt={4}>
+                {customData && hasFoi && (
+                  <FormControlSwitch
+                    label={SHOW_FOI_LABEL}
+                    value={showFoi}
+                    handleAction={onToggleFoi}
+                  />
+                )}
                 {customData && hasPoints && (
                   <FormControlSwitch
                     label={SHOW_POINTS_LABEL}

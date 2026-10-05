@@ -1,7 +1,14 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
+import {
+  TOKEN_KEY,
   apiFetch,
   authConfigured,
   getToken,
@@ -25,6 +32,26 @@ export const AuthProvider = ({ children }) => {
     setStatus('signedOut');
   }, []);
 
+  // Signed in iff the stored token checks out with the API. A 401 clears the
+  // token (apiFetch -> signOut, for every tab); any other failure only signs
+  // this tab out, so a network blip doesn't end the shared session.
+  const loadUser = useCallback(() => {
+    if (!getToken()) {
+      setUser(null);
+      setStatus('signedOut');
+      return;
+    }
+    apiFetch('auth/me')
+      .then(({ data }) => {
+        setUser({ email: data.identity });
+        setStatus('signedIn');
+      })
+      .catch(() => {
+        setUser(null);
+        setStatus('signedOut');
+      });
+  }, []);
+
   useEffect(() => {
     setUnauthorizedHandler(signOut);
     if (!authConfigured) {
@@ -34,17 +61,15 @@ export const AuthProvider = ({ children }) => {
     const outcome = readSignInFragment();
     if (outcome?.token) setToken(outcome.token);
     if (outcome?.error) setError(outcome.error);
-    if (!getToken()) {
-      setStatus('signedOut');
-      return;
-    }
-    apiFetch('auth/me')
-      .then(({ data }) => {
-        setUser({ email: data.identity });
-        setStatus('signedIn');
-      })
-      .catch(signOut);
-  }, [signOut]);
+    loadUser();
+
+    // The token is shared by every tab: follow sign-in/out in the others.
+    const onStorage = (event) => {
+      if (event.key === TOKEN_KEY || event.key === null) loadUser();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [signOut, loadUser]);
 
   const signIn = useCallback(() => {
     window.location.href = signInUrl();

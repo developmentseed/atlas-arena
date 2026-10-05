@@ -30,9 +30,12 @@ import {
   LEGEND_SDM_TITLE,
 } from '@/config/constants/constants.explore';
 
+// `title` keys the opacity value; `name` (optional) is shown instead of the
+// abbreviated species-style title.
 const ColorLegend = ({
   color = '',
   title = '',
+  name = null,
   labels = [],
   handleChange = null,
   value = {},
@@ -46,9 +49,9 @@ const ColorLegend = ({
     handleChange(title, ev);
   };
 
-  let customTitle = `${title}`;
+  let customTitle = name ?? `${title}`;
   const titleList = title.split(' ');
-  if (titleList.length > 1) {
+  if (!name && titleList.length > 1) {
     customTitle = `${titleList[0][0]}. ${titleList.slice(1, titleList.length).join(' ')}`;
   }
   const opacity =
@@ -137,13 +140,18 @@ const ColorLegend = ({
   );
 };
 
+// `heading` and `ticks` override the species-distribution defaults, so the
+// same legend serves other rasters (force of infection).
 const SDMLegend = ({
   labels = [],
   value = {},
   isDelta = false,
   handleChange = null,
+  heading = null,
+  ticks = null,
 }) => {
-  const labelsUnits = isDelta ? LEGEND_DELTA_VALUE : DEFAULT_LEGEND_VALUE;
+  const labelsUnits =
+    ticks || (isDelta ? LEGEND_DELTA_VALUE : DEFAULT_LEGEND_VALUE);
   const unit = isDelta ? UNIT_DELTA : UNIT_SDM;
   if (!labels || labels.length == 0) return null;
 
@@ -178,7 +186,7 @@ const SDMLegend = ({
         color='base.700'
         textTransform='uppercase'
       >
-        {LEGEND_SDM_TITLE} {unit}
+        {heading || `${LEGEND_SDM_TITLE} ${unit}`}
       </Text>
       <Box
         display='flex'

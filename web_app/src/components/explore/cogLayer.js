@@ -53,24 +53,28 @@ const getColormapTexture = (device) => {
   return colormapTextures.get(device);
 };
 
-// Discards nodata (NaN) and values at or below `minValue`. NaN fails every
-// comparison, so a single `>` test covers both.
-const FilterBelow = {
-  name: 'filterBelow',
+// Keeps only values in (minValue, maxValue], discarding nodata (NaN) and
+// everything else. NaN fails every comparison, so it is always discarded.
+const FilterRange = {
+  name: 'filterRange',
   fs: `\
-uniform filterBelowUniforms {
+uniform filterRangeUniforms {
   float minValue;
-} filterBelow;
+  float maxValue;
+} filterRange;
 `,
   inject: {
     'fs:DECKGL_FILTER_COLOR': /* glsl */ `
-    if (!(color.r > filterBelow.minValue)) {
+    if (!(color.r > filterRange.minValue && color.r <= filterRange.maxValue)) {
       discard;
     }
     `,
   },
-  uniformTypes: { minValue: 'f32' },
-  getUniforms: (props) => ({ minValue: props.minValue }),
+  uniformTypes: { minValue: 'f32', maxValue: 'f32' },
+  getUniforms: (props) => ({
+    minValue: props.minValue,
+    maxValue: props.maxValue,
+  }),
 };
 
 const getTileData = async (image, { device, x, y, signal, pool }) => {
@@ -79,7 +83,9 @@ const getTileData = async (image, { device, x, y, signal, pool }) => {
     pool,
     signal,
   });
-  const data = array.layout === 'band-separate' ? array.bands[0] : array.data;
+  const band = array.layout === 'band-separate' ? array.bands[0] : array.data;
+  // Integer rasters (e.g. uint8 hotspot masks) go through the same float path.
+  const data = band instanceof Float32Array ? band : Float32Array.from(band);
   const texture = device.createTexture({
     data,
     format: 'r32float',
@@ -107,7 +113,14 @@ export const buildCogLayer = ({ item, opacity }) => {
   const [rangeMin, rangeMax] = item.range;
   // Like the Mapbox version, zero probability is transparent; ranges that go
   // negative (differences) only hide nodata.
-  const minValue = rangeMin < 0 ? -3.0e38 : 0.000001;
+  let minValue = rangeMin < 0 ? -3.0e38 : 0.000001;
+  let maxValue = 3.0e38;
+  // A 0/1 mask (FOI hotspots): keep only 1s, dropping 0 and integer nodata,
+  // drawn in the ramp's top colour.
+  if (item.mask) {
+    minValue = 0.5;
+    maxValue = 1.5;
+  }
   const colormapIndex = Math.max(
     COLORMAP_NAMES.indexOf(item.color || 'default'),
     0
@@ -124,7 +137,7 @@ export const buildCogLayer = ({ item, opacity }) => {
     renderTile: (tile) => ({
       renderPipeline: [
         { module: CreateTexture, props: { textureName: tile.texture } },
-        { module: FilterBelow, props: { minValue } },
+        { module: FilterRange, props: { minValue, maxValue } },
         {
           module: LinearRescale,
           props: { rescaleMin: rangeMin, rescaleMax: rangeMax },

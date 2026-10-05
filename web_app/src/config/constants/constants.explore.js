@@ -66,6 +66,9 @@ export const JOB_STATUS_TEXT = {
   SUCCEEDED: 'Results ready',
 };
 export const SHOW_POINTS_LABEL = 'Show uploaded points';
+export const SHOW_FOI_LABEL = 'Show force of infection';
+export const LEGEND_FOI_TITLE = 'Force of infection';
+export const LEGEND_FOI_TICKS = ['0', '0.025', '0.05'];
 export const SIGN_IN_TO_VIEW_JOB = 'Sign in to view this model run';
 export const JOB_FAILED_TITLE = 'Model run failed';
 export const JOB_NOT_FOUND_TITLE = 'Model run not found';
