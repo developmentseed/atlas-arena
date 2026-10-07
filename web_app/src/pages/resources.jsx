@@ -17,6 +17,8 @@ import rehypeRaw from 'rehype-raw';
 import InnerHeading from '@/components/custom/InnerHeading';
 import { sortList } from '@/utils/utils';
 
+const toSlug = (name = '') => name.toLowerCase().replace(/\s+/g, '_');
+
 const SideNavBar = ({ navigationItems, handleNavigation, selectedItem }) => {
   if (!navigationItems) return null;
   return (
@@ -41,8 +43,8 @@ const SideNavBar = ({ navigationItems, handleNavigation, selectedItem }) => {
                   <Link
                     key={item}
                     onClick={() => handleNavigation(item)}
-                    fontWeight={selectedItem === item ? 'bold' : 'normal'}
-                    color={selectedItem === item ? 'blue.800' : 'gray.500'}
+                    fontWeight={selectedItem === toSlug(item) ? 'bold' : 'normal'}
+                    color={selectedItem === toSlug(item) ? 'blue.800' : 'gray.500'}
                   >
                     {item}
                   </Link>
@@ -62,7 +64,7 @@ const Resources = ({ mdData, pageData }) => {
 
   useEffect(() => {
     if (queryItem) {
-      setSelectedItem(queryItem.toLowerCase().replace(' ', '_'));
+      setSelectedItem(toSlug(queryItem));
     }
   }, [queryItem, mdData]);
 
@@ -91,14 +93,11 @@ const Resources = ({ mdData, pageData }) => {
   ];
 
   if (!selectedItem) {
-    const newSelect = (navigationItems[0].items[0] || '')
-      .toLowerCase()
-      .replace(' ', '_');
-    setSelectedItem(newSelect);
+    setSelectedItem(toSlug(navigationItems[0].items[0]));
   }
 
   const handleNavigation = (item) => {
-    const newItem = (item || '').toLowerCase().replace(' ', '_');
+    const newItem = toSlug(item);
     setSelectedItem(newItem);
     router.push(`/resources?item=${newItem}`, undefined, { shallow: true });
   };
@@ -106,7 +105,7 @@ const Resources = ({ mdData, pageData }) => {
   try {
     data = mdData.filter(
       (item) =>
-        (item.name || '').toLowerCase().replace(' ', '_') == selectedItem
+        toSlug(item.name) == selectedItem
     )[0];
     if (!data) {
       data = { contentHtml: '' };
