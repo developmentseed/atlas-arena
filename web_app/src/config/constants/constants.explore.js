@@ -53,6 +53,7 @@ export const UPLOAD_DROPZONE_HINT =
 export const UPLOAD_ACCEPT = '.geojson,.json,application/geo+json';
 export const UPLOAD_CANCEL = 'Cancel';
 export const UPLOAD_SUBMIT = 'Upload';
+export const UPLOAD_IN_PROGRESS = 'Uploading';
 export const UPLOAD_SUCCESS_TITLE = 'Upload successful';
 export const UPLOAD_SUCCESS_TEXT = (count = 0) =>
   `${count.toLocaleString('en-US')} points uploaded`;

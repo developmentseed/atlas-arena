@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, Flex, Select } from '@chakra-ui/react';
+import { FormControl, Select } from '@chakra-ui/react';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
 
 const FormControlSelect = ({
@@ -12,11 +12,7 @@ const FormControlSelect = ({
   describedBy,
 }) => {
   return (
-    <FormControl
-      py={2}
-      isDisabled={isDisabled}
-      aria-describedby={isLocked ? describedBy : undefined}
-    >
+    <FormControl py={2} isDisabled={isDisabled}>
       <FormLabelFlex label={label} info={info} isDisabled={isDisabled} />
       <Select
         bg='white'
@@ -25,6 +21,7 @@ const FormControlSelect = ({
         value={value}
         onChange={handleAction}
         isDisabled={isDisabled || isLocked}
+        aria-describedby={isLocked ? describedBy : undefined}
       >
         {options.map((i) => (
           <option key={i.key} value={i.key}>

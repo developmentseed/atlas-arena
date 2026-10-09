@@ -92,6 +92,7 @@ const FormControlRadioTime = ({
     <FormControl
       my={4}
       isDisabled={isDisabled}
+      role='group'
       aria-labelledby={headingId}
       aria-describedby={isLocked ? describedBy : undefined}
     >

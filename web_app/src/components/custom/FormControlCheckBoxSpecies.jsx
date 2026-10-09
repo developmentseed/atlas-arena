@@ -45,6 +45,7 @@ const FormControlCheckBoxSpecies = ({
     <FormControl
       my={4}
       isDisabled={isDisabled}
+      role='group'
       aria-labelledby={headingId}
       aria-describedby={notice ? noticeId : undefined}
     >

@@ -20,7 +20,7 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
-import { FiCheck, FiPlusCircle, FiX } from 'react-icons/fi';
+import { LuCheck, LuPlusCircle, LuX } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
 import { DEFAULT_TIME } from '@/config/constants/general';
 import {
@@ -33,6 +33,7 @@ import {
   UPLOAD_ACCEPT,
   UPLOAD_CANCEL,
   UPLOAD_SUBMIT,
+  UPLOAD_IN_PROGRESS,
   UPLOAD_SUCCESS_TITLE,
   UPLOAD_SUCCESS_TEXT,
   UPLOAD_DONE,
@@ -63,11 +64,11 @@ const StatusMessage = ({ icon, iconBg, title, text, role }) => (
       >
         <Icon as={icon} boxSize={4} color='white' strokeWidth={3} />
       </Flex>
-      <Text fontSize='lg' fontWeight={600} color='black'>
+      <Text fontSize='md' fontWeight={600} color='black'>
         {title}
       </Text>
     </Flex>
-    <Text fontSize='sm' color='gray.700'>
+    <Text fontSize='xs' color='gray.700'>
       {text}
     </Text>
   </Box>
@@ -227,7 +228,7 @@ const UploadModal = ({
         onDrop={handleDrop}
       >
         <Icon
-          as={FiPlusCircle}
+          as={LuPlusCircle}
           boxSize={6}
           color='gray.500'
           strokeWidth={1.5}
@@ -275,8 +276,8 @@ const UploadModal = ({
       body: (
         <StatusMessage
           role='status'
-          icon={FiCheck}
-          iconBg='green.400'
+          icon={LuCheck}
+          iconBg='green.600'
           title={UPLOAD_SUCCESS_TITLE}
           text={UPLOAD_SUCCESS_TEXT(pointCount)}
         />
@@ -291,8 +292,8 @@ const UploadModal = ({
       body: (
         <StatusMessage
           role='alert'
-          icon={FiX}
-          iconBg='red.300'
+          icon={LuX}
+          iconBg='red.600'
           title={UPLOAD_ERROR_TITLE}
           text={UPLOAD_ERROR_TEXT}
         />
@@ -334,11 +335,24 @@ const UploadModal = ({
     <Modal isOpen={isOpen} onClose={handleClose} size='md' isCentered>
       <ModalOverlay />
       <ModalContent borderRadius='md' mx={4}>
-        <ModalHeader fontSize='lg' fontWeight={700} color='gray.800' pr={12}>
+        <ModalHeader
+          as='h2'
+          fontSize='lg'
+          fontWeight={700}
+          color='gray.800'
+          pr={12}
+        >
           {UPLOAD_TITLE}
         </ModalHeader>
         <ModalCloseButton top={4} right={4} />
-        <ModalBody>{result ? result.body : renderForm}</ModalBody>
+        <ModalBody>
+          {result ? result.body : renderForm}
+          {/* The Upload button's label is replaced by a spinner while
+              uploading, so announce the in-progress state separately. */}
+          <Text role='status' srOnly>
+            {status === STATUS.UPLOADING ? UPLOAD_IN_PROGRESS : ''}
+          </Text>
+        </ModalBody>
         <ModalFooter gap={3}>{result ? result.footer : formFooter}</ModalFooter>
       </ModalContent>
     </Modal>
