@@ -21,11 +21,12 @@ const Header = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   return (
     <Box
-      bg='secondary.50'
-      py={4}
+      bg='white'
+      py={2}
       px={6}
       borderBottom={'1px'}
-      borderBottomColor='gray.200'
+      borderBottomColor='gray.100'
+      boxShadow="sm"
     >
       <Flex alignItems={'center'} justifyContent={'space-between'}>
         <IconButton
@@ -47,18 +48,18 @@ const Header = () => {
           >
             <Image
               src={AALogo.src}
-              height='70px'
+              height='48px'
               objectFit='cover'
-              m='-6'
+              m='-4'
               pt="2"
             />
             <Text
-              fontSize='xl'
-              ml="-2"
+              fontSize='md'
+              ml="-1"
               color='blue.800'
-              fontWeight={500}
+              fontWeight={600}
               lineHeight='21px'
-              letterSpacing={-0.5}
+              letterSpacing={0.5}
               textTransform='uppercase'
             >
               {PAGE_TITLE}

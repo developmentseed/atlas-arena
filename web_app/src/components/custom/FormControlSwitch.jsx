@@ -11,7 +11,7 @@ const FormControlSwitch = ({
     <FormControl py={2} isDisabled={isDisabled}>
       <FormLabelFlex />
       <Flex justifyContent='start' alignItems='center'>
-        <Switch size='md' mr={2} onChange={handleAction} isChecked={value} />
+        <Switch size='sm' mr={2} onChange={handleAction} isChecked={value} />
         <Text as='label' fontSize='xs' color='gray.700'>
           {label}
         </Text>

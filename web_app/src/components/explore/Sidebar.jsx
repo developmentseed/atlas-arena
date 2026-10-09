@@ -248,7 +248,7 @@ const Sidebar = ({
         overflowY='auto'
         boxShadow='sm'
         borderRight='1px solid'
-        borderColor='blackAlpha.400'
+        borderColor='blackAlpha.100'
         transition='all 0.3s ease'
       >
         {!isCollapsed && (
