@@ -72,8 +72,8 @@ const ColorLegend = ({
         alignItems="center"
       >
         <Text
-          fontSize='14px'
-          fontWeight={600}
+          fontSize='xs'
+          fontWeight={500}
           fontStyle='italic'
           color='base.700'
           textTransform='capitalize'
@@ -179,11 +179,12 @@ const SDMLegend = ({
       alignItems='start'
       position='relative'
       justifyContent='space-between'
+      boxShadow='sm'
     >
       <Text
-        fontSize='14px'
+        fontSize='xs'
         fontWeight={600}
-        color='base.700'
+        color='base.600'
         textTransform='uppercase'
       >
         {heading || `${LEGEND_SDM_TITLE} ${unit}`}
