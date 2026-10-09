@@ -1,4 +1,4 @@
-import { FormControl, Select } from '@chakra-ui/react';
+import { NativeSelect, Field } from '@chakra-ui/react';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
 
 const FormControlSelect = ({
@@ -12,24 +12,25 @@ const FormControlSelect = ({
   describedBy,
 }) => {
   return (
-    <FormControl py={2} isDisabled={isDisabled}>
+    <Field.Root py={2} disabled={isDisabled}>
       <FormLabelFlex label={label} info={info} isDisabled={isDisabled} />
-      <Select
-        bg='white'
-        size='sm'
-        borderColor='gray.200'
-        value={value}
-        onChange={handleAction}
-        isDisabled={isDisabled || isLocked}
-        aria-describedby={isLocked ? describedBy : undefined}
-      >
-        {options.map((i) => (
-          <option key={i.key} value={i.key}>
-            {i.name}
-          </option>
-        ))}
-      </Select>
-    </FormControl>
+      <NativeSelect.Root size='sm' disabled={isDisabled || isLocked}>
+        <NativeSelect.Field
+          bg='white'
+          borderColor='gray.200'
+          value={value}
+          onChange={handleAction}
+          aria-describedby={isLocked ? describedBy : undefined}
+        >
+          {options.map((i) => (
+            <option key={i.key} value={i.key}>
+              {i.name}
+            </option>
+          ))}
+        </NativeSelect.Field>
+        <NativeSelect.Indicator />
+      </NativeSelect.Root>
+    </Field.Root>
   );
 };
 export default FormControlSelect;

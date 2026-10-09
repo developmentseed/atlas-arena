@@ -170,9 +170,8 @@ const Sidebar = ({
     }
   };
 
-  const handleSpeciesChange = (event) => {
+  const handleSpeciesChange = (id) => {
     let species = [...selectedSpecies];
-    const id = event.target.id;
     if (species.includes(id)) {
       species = species.filter((i) => id !== i);
     } else {
@@ -304,7 +303,7 @@ const Sidebar = ({
         describedBy={CUSTOM_DATA_NOTICE_ID}
       />
       <RequireAuth>
-        <Stack spacing={2} mt='auto' pt={4}>
+        <Stack gap={2} mt='auto' pt={4}>
           {customData && hasFoi && (
             <FormControlSwitch
               label={SHOW_FOI_LABEL}
@@ -339,21 +338,21 @@ const Sidebar = ({
           {customData && (
             <Button
               variant='outline'
-              colorScheme='blue'
+              colorPalette='blue'
               bg='white'
-              leftIcon={<Icon as={LuX} />}
               onClick={handleClearCustomData}
             >
+              <LuX />
               {CLEAR_CUSTOM_DATA_BUTTON}
             </Button>
           )}
           <Button
             ref={uploadButtonRef}
             variant='solid'
-            colorScheme='blue'
-            leftIcon={<Icon as={LuUpload} />}
+            colorPalette='blue'
             onClick={() => setUploadModalOpen(true)}
           >
+            <LuUpload />
             {UPLOAD_BUTTON}
           </Button>
         </Stack>
@@ -379,6 +378,7 @@ const Sidebar = ({
       // so it can fill exactly the space under the bar.
       <Box w='100%'>
         <Button
+          variant='plain'
           w='100%'
           h={`${H_FILTER_BAR}px`}
           px={4}
@@ -392,17 +392,15 @@ const Sidebar = ({
           borderColor='blackAlpha.400'
           _hover={{ bg: 'secondary.100' }}
           _active={{ bg: 'secondary.100' }}
-          leftIcon={<Icon as={LuSlidersHorizontal} boxSize={4} />}
-          rightIcon={
-            <Icon as={isMobileOpen ? LuChevronUp : LuChevronDown} boxSize={4} />
-          }
           aria-expanded={isMobileOpen}
           aria-controls='explore-filters'
           onClick={toggleSidebar}
         >
+          <LuSlidersHorizontal />
           <Box as='span' flex={1} textAlign='start'>
             {isMobileOpen ? FILTERS_HIDE : FILTERS_SHOW}
           </Box>
+          {isMobileOpen ? <LuChevronUp /> : <LuChevronDown />}
         </Button>
         {/* Panel slides down from under the bar, over the map. The clip box
             spans the area below the bar but never takes pointer events, so
@@ -477,13 +475,8 @@ const Sidebar = ({
         aria-label={isCollapsed ? FILTERS_SHOW : FILTERS_HIDE}
         aria-expanded={!isCollapsed}
         aria-controls='explore-filters'
-        icon={
-          <Icon
-            as={isCollapsed ? LuPanelLeftOpen : LuPanelLeftClose}
-            boxSize={4}
-          />
-        }
         size='sm'
+        variant='plain'
         bg='secondary.50'
         color='blue.800'
         border='1px solid'
@@ -498,7 +491,9 @@ const Sidebar = ({
         transition='left 0.3s ease, background-color 0.2s'
         onClick={toggleSidebar}
         zIndex={1000}
-      />
+      >
+        {isCollapsed ? <LuPanelLeftOpen /> : <LuPanelLeftClose />}
+      </IconButton>
       {uploadModal}
     </Flex>
   );

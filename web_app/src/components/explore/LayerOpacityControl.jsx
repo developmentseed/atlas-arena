@@ -1,16 +1,8 @@
 import {
-  Icon,
+  CloseButton,
   IconButton,
   Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverCloseButton,
-  PopoverBody,
   Slider,
-  SliderTrack,
-  SliderFilledTrack,
-  SliderThumb,
   Text,
 } from '@chakra-ui/react';
 import { LuDroplet } from 'react-icons/lu';
@@ -29,48 +21,59 @@ const LayerOpacityControl = ({
 }) => {
   const controlLabel = LEGEND_ADJUST_OPACITY(name);
   return (
-    <Popover placement='bottom-end' isLazy>
-      <PopoverTrigger>
+    <Popover.Root lazyMount positioning={{ placement: 'bottom-end' }}>
+      <Popover.Trigger asChild>
         <IconButton
           aria-label={controlLabel}
-          icon={<Icon as={LuDroplet} boxSize={4} />}
           variant='ghost'
-          size='xs'
+          size='2xs'
           minW={6}
           h={6}
           color='gray.600'
-        />
-      </PopoverTrigger>
-      <PopoverContent
-        aria-label={controlLabel}
-        w='163px'
-        px={2}
-        pt={0}
-        mt={0}
-        ml='127px'
-        _focus={{ outline: 'none' }}
-        zIndex={10}
-      >
-        <PopoverArrow />
-        <PopoverCloseButton boxSize={3} />
-        <PopoverBody p={1}>
-          <Text fontSize='12px' m={0}>
-            {LEGEND_OPACITY}
-          </Text>
-          <Slider
-            aria-label={LEGEND_OPACITY_OF(name)}
-            getAriaValueText={(v) => `${v}%`}
-            defaultValue={value}
-            onChange={handleChange}
-          >
-            <SliderTrack>
-              <SliderFilledTrack />
-            </SliderTrack>
-            <SliderThumb boxSize={4} />
-          </Slider>
-        </PopoverBody>
-      </PopoverContent>
-    </Popover>
+        >
+          <LuDroplet />
+        </IconButton>
+      </Popover.Trigger>
+      <Popover.Positioner>
+        <Popover.Content
+          aria-label={controlLabel}
+          w='163px'
+          px={2}
+          pt={0}
+          mt={0}
+          ml='127px'
+          _focus={{ outline: 'none' }}
+          zIndex={10}
+        >
+          <Popover.Arrow>
+            <Popover.ArrowTip />
+          </Popover.Arrow>
+          <Popover.CloseTrigger asChild position='absolute' top={1} right={1}>
+            <CloseButton size='2xs' />
+          </Popover.CloseTrigger>
+          <Popover.Body p={1}>
+            <Text fontSize='12px' m={0}>
+              {LEGEND_OPACITY}
+            </Text>
+            <Slider.Root
+              size='sm'
+              colorPalette='blue'
+              aria-label={[LEGEND_OPACITY_OF(name)]}
+              getAriaValueText={(details) => `${details.value}%`}
+              defaultValue={[value]}
+              onValueChange={(details) => handleChange(details.value[0])}
+            >
+              <Slider.Control>
+                <Slider.Track>
+                  <Slider.Range />
+                </Slider.Track>
+                <Slider.Thumbs boxSize={4} />
+              </Slider.Control>
+            </Slider.Root>
+          </Popover.Body>
+        </Popover.Content>
+      </Popover.Positioner>
+    </Popover.Root>
   );
 };
 

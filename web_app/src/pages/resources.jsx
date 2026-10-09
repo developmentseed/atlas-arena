@@ -3,8 +3,8 @@ import { Box, Container, Text, Flex, VStack, Link } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 
 import ReactMarkdown from 'react-markdown';
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer';
 import MarkdownTheme from '@/config/md/markdownTheme';
+import { markdownComponents } from '@/config/md/markdownComponents';
 import { getMetadataMd, getMdContent } from '@/libs/markdown';
 import rehypeRaw from 'rehype-raw';
 import InnerHeading from '@/components/custom/InnerHeading';
@@ -25,7 +25,7 @@ const SideNavBar = ({ navigationItems, handleNavigation, selectedItem }) => {
       borderColor={{ xs: null, md: 'gray.200' }}
       overflowY='auto'
     >
-      <VStack align='start' spacing={4}>
+      <VStack align='start' gap={4}>
         {navigationItems
           .filter((i) => i.items && i.items.length)
           .map((section) => (
@@ -38,8 +38,12 @@ const SideNavBar = ({ navigationItems, handleNavigation, selectedItem }) => {
                   <Link
                     key={item}
                     onClick={() => handleNavigation(item)}
-                    fontWeight={selectedItem === toSlug(item) ? 'bold' : 'normal'}
-                    color={selectedItem === toSlug(item) ? 'blue.800' : 'gray.500'}
+                    fontWeight={
+                      selectedItem === toSlug(item) ? 'bold' : 'normal'
+                    }
+                    color={
+                      selectedItem === toSlug(item) ? 'blue.800' : 'gray.500'
+                    }
                   >
                     {item}
                   </Link>
@@ -98,10 +102,7 @@ const Resources = ({ mdData, pageData }) => {
   };
   let data = { contentHtml: '' };
   try {
-    data = mdData.filter(
-      (item) =>
-        toSlug(item.name) == selectedItem
-    )[0];
+    data = mdData.filter((item) => toSlug(item.name) == selectedItem)[0];
     if (!data) {
       data = { contentHtml: '' };
     }
@@ -110,7 +111,7 @@ const Resources = ({ mdData, pageData }) => {
   }
 
   return (
-    <Container maxW='container.lg' p={4}>
+    <Container maxW='1024px' p={4}>
       <PageTitle title={buildPageTitle('Resources')} />
       <Box my={4}>
         <InnerHeading {...pageData} />
@@ -123,7 +124,7 @@ const Resources = ({ mdData, pageData }) => {
         />
         <Box flex='1' p={{ xs: 0, md: 4 }}>
           <ReactMarkdown
-            components={ChakraUIRenderer(MarkdownTheme)}
+            components={markdownComponents(MarkdownTheme)}
             rehypePlugins={[rehypeRaw]}
             children={data.contentHtml}
             skipHtml={false}

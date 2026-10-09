@@ -1,21 +1,19 @@
-import { defineStyleConfig } from '@chakra-ui/react';
+import { defineRecipe } from '@chakra-ui/react';
 
-// Chakra's default solid blue button (white on blue.500, #3776ED) measures
-// 4.21:1, under the 4.5:1 WCAG AA minimum. Shift the solid blue scheme one
-// step darker so white text passes (blue.600 = 5.11:1).
-const variants = {
-  solid: ({ colorScheme }) => {
-    if (colorScheme !== 'blue') return {};
-    return {
-      bg: 'blue.600',
-      color: 'white',
-      _hover: {
-        bg: 'blue.700',
-        _disabled: { bg: 'blue.600' },
+// The solid blue button is white on blue.600 (5.11:1, WCAG AA), which is the
+// v3 default. v3's default hover fades the fill to 90% opacity, which drops
+// the contrast to ~4.27:1. Darken on hover/active instead, for every palette.
+const darken = (amount) =>
+  `color-mix(in srgb, {colors.colorPalette.solid}, black ${amount})`;
+
+export default defineRecipe({
+  variants: {
+    variant: {
+      solid: {
+        _hover: { bg: darken('12%') },
+        _expanded: { bg: darken('12%') },
+        _active: { bg: darken('24%') },
       },
-      _active: { bg: 'blue.800' },
-    };
+    },
   },
-};
-
-export default defineStyleConfig({ variants });
+});

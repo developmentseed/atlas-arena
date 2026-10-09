@@ -80,7 +80,9 @@ const ColorLegend = ({
         mb={0}
         display='flex'
         width='full'
-        bgGradient={`linear(to-r, ${colors[0]}, ${colors[colors.length - 1]})`}
+        bgGradient='to-r'
+        gradientFrom={colors[0]}
+        gradientTo={colors[colors.length - 1]}
         aria-hidden='true'
       />
       <Box
@@ -152,6 +154,7 @@ const SDMLegend = ({
         id={headingId}
         fontSize='xs'
         fontWeight={600}
+        lineHeight='shorter'
         color='base.600'
         textTransform='uppercase'
       >

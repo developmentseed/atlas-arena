@@ -2,21 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Box,
   Button,
+  CloseButton,
+  Dialog,
+  Field,
+  Fieldset,
   Flex,
-  FormControl,
-  FormLabel,
   Icon,
   Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Radio,
+  NativeSelect,
+  Portal,
   RadioGroup,
-  Select,
   Stack,
   Text,
 } from '@chakra-ui/react';
@@ -50,7 +45,7 @@ const STATUS = {
   ERROR: 'error',
 };
 
-const StatusMessage = ({ icon, iconBg, title, text, role }) => (
+const StatusMessage = ({ icon: IconSvg, iconBg, title, text, role }) => (
   <Box role={role}>
     <Flex alignItems='center' gap={2} mb={2}>
       <Flex
@@ -62,7 +57,7 @@ const StatusMessage = ({ icon, iconBg, title, text, role }) => (
         flexShrink={0}
         aria-hidden='true'
       >
-        <Icon as={icon} boxSize={4} color='white' strokeWidth={3} />
+        <Icon as={IconSvg} boxSize={4} color='white' strokeWidth={3} />
       </Flex>
       <Text fontSize='md' fontWeight={600} color='black'>
         {title}
@@ -183,28 +178,30 @@ const UploadModal = ({
         {UPLOAD_DESCRIPTION}
       </Text>
 
-      <FormControl mb={4} isDisabled={status === STATUS.UPLOADING}>
-        <FormLabel fontSize='sm' fontWeight={700} mb={2}>
+      <Field.Root mb={4} disabled={status === STATUS.UPLOADING}>
+        <Field.Label fontSize='sm' fontWeight={700} mb={2}>
           {UPLOAD_SPECIES_LABEL}
-        </FormLabel>
-        <Select
-          value={selectedSpecies}
-          onChange={(event) => setSpecies(event.target.value)}
-          bg='white'
-          borderColor='gray.200'
-        >
-          {allSpecies.map((item) => (
-            <option key={item.key} value={item.key}>
-              {item.name}
-            </option>
-          ))}
-        </Select>
-      </FormControl>
+        </Field.Label>
+        <NativeSelect.Root>
+          <NativeSelect.Field
+            value={selectedSpecies}
+            onChange={(event) => setSpecies(event.target.value)}
+            bg='white'
+            borderColor='gray.200'
+          >
+            {allSpecies.map((item) => (
+              <option key={item.key} value={item.key}>
+                {item.name}
+              </option>
+            ))}
+          </NativeSelect.Field>
+          <NativeSelect.Indicator />
+        </NativeSelect.Root>
+      </Field.Root>
 
       {/* The whole drop zone is the file input's label: click or
           Enter/Space on the focused input opens the file picker. */}
       <Box
-        as='label'
         display='flex'
         flexDirection='column'
         alignItems='center'
@@ -223,51 +220,58 @@ const UploadModal = ({
         transition='background-color 0.2s, border-color 0.2s'
         _hover={{ borderColor: 'gray.400' }}
         _focusWithin={{ boxShadow: 'outline' }}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
+        asChild
       >
-        <Icon
-          as={LuPlusCircle}
-          boxSize={6}
-          color='gray.500'
-          strokeWidth={1.5}
-          aria-hidden='true'
-        />
-        <Text fontSize='sm' color='gray.800'>
-          {file ? file.name : UPLOAD_DROPZONE_TEXT}
-        </Text>
-        <Text fontSize='xs' color='gray.600'>
-          {UPLOAD_DROPZONE_HINT}
-        </Text>
-        <Input
-          type='file'
-          accept={accept}
-          onChange={handleFileChange}
-          isDisabled={status === STATUS.UPLOADING}
-          srOnly
-        />
+        <label
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
+          <Icon
+            as={LuPlusCircle}
+            boxSize={6}
+            color='gray.500'
+            strokeWidth={1.5}
+            aria-hidden='true'
+          />
+          <Text fontSize='sm' color='gray.800'>
+            {file ? file.name : UPLOAD_DROPZONE_TEXT}
+          </Text>
+          <Text fontSize='xs' color='gray.600'>
+            {UPLOAD_DROPZONE_HINT}
+          </Text>
+          <Input
+            type='file'
+            accept={accept}
+            onChange={handleFileChange}
+            disabled={status === STATUS.UPLOADING}
+            srOnly
+          />
+        </label>
       </Box>
-      <FormControl
-        as='fieldset'
-        mb={4}
-        isDisabled={status === STATUS.UPLOADING}
-      >
-        <FormLabel as='legend' fontSize='sm' fontWeight={700} mb={2}>
+      <Fieldset.Root mb={4} disabled={status === STATUS.UPLOADING}>
+        <Fieldset.Legend fontSize='sm' fontWeight={700} mb={2}>
           {UPLOAD_SCENARIO_LABEL}
-        </FormLabel>
-        <RadioGroup value={scenario} onChange={setScenario}>
-          <Stack spacing={1}>
+        </Fieldset.Legend>
+        <RadioGroup.Root
+          value={scenario}
+          onValueChange={(e) => setScenario(e.value)}
+          size='sm'
+          colorPalette='blue'
+        >
+          <Stack gap={1}>
             {scenarios.map((item) => (
-              <Radio key={item.key} value={item.key} size='sm'>
-                <Text as='span' fontSize='sm'>
+              <RadioGroup.Item key={item.key} value={item.key}>
+                <RadioGroup.ItemHiddenInput />
+                <RadioGroup.ItemIndicator />
+                <RadioGroup.ItemText fontSize='sm'>
                   {item.name}
-                </Text>
-              </Radio>
+                </RadioGroup.ItemText>
+              </RadioGroup.Item>
             ))}
           </Stack>
-        </RadioGroup>
-      </FormControl>
+        </RadioGroup.Root>
+      </Fieldset.Root>
     </>
   );
 
@@ -283,7 +287,7 @@ const UploadModal = ({
         />
       ),
       footer: (
-        <Button colorScheme='blue' onClick={handleClose} ref={resultActionRef}>
+        <Button colorPalette='blue' onClick={handleClose} ref={resultActionRef}>
           {UPLOAD_DONE}
         </Button>
       ),
@@ -300,9 +304,11 @@ const UploadModal = ({
       ),
       footer: (
         <>
-          <Button onClick={handleClose}>{UPLOAD_CANCEL}</Button>
+          <Button variant='subtle' onClick={handleClose}>
+            {UPLOAD_CANCEL}
+          </Button>
           <Button
-            colorScheme='blue'
+            colorPalette='blue'
             onClick={handleRetry}
             ref={resultActionRef}
           >
@@ -315,14 +321,18 @@ const UploadModal = ({
 
   const formFooter = (
     <>
-      <Button onClick={handleClose} isDisabled={status === STATUS.UPLOADING}>
+      <Button
+        variant='subtle'
+        onClick={handleClose}
+        disabled={status === STATUS.UPLOADING}
+      >
         {UPLOAD_CANCEL}
       </Button>
       <Button
-        colorScheme='blue'
+        colorPalette='blue'
         onClick={handleUpload}
-        isDisabled={!file}
-        isLoading={status === STATUS.UPLOADING}
+        disabled={!file}
+        loading={status === STATUS.UPLOADING}
       >
         {UPLOAD_SUBMIT}
       </Button>
@@ -332,30 +342,41 @@ const UploadModal = ({
   const result = content[status];
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} size='md' isCentered>
-      <ModalOverlay />
-      <ModalContent borderRadius='md' mx={4}>
-        <ModalHeader
-          as='h2'
-          fontSize='lg'
-          fontWeight={700}
-          color='gray.800'
-          pr={12}
-        >
-          {UPLOAD_TITLE}
-        </ModalHeader>
-        <ModalCloseButton top={4} right={4} />
-        <ModalBody>
-          {result ? result.body : renderForm}
-          {/* The Upload button's label is replaced by a spinner while
-              uploading, so announce the in-progress state separately. */}
-          <Text role='status' srOnly>
-            {status === STATUS.UPLOADING ? UPLOAD_IN_PROGRESS : ''}
-          </Text>
-        </ModalBody>
-        <ModalFooter gap={3}>{result ? result.footer : formFooter}</ModalFooter>
-      </ModalContent>
-    </Modal>
+    <Dialog.Root
+      open={isOpen}
+      size='md'
+      placement='center'
+      onOpenChange={(e) => {
+        if (!e.open) handleClose();
+      }}
+    >
+      <Portal>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content borderRadius='md' mx={4}>
+            <Dialog.Header pr={12}>
+              <Dialog.Title fontSize='lg' fontWeight={700} color='gray.800'>
+                {UPLOAD_TITLE}
+              </Dialog.Title>
+            </Dialog.Header>
+            <Dialog.CloseTrigger top={4} right={4} asChild>
+              <CloseButton size='sm' />
+            </Dialog.CloseTrigger>
+            <Dialog.Body>
+              {result ? result.body : renderForm}
+              {/* The Upload button's label is replaced by a spinner while
+                  uploading, so announce the in-progress state separately. */}
+              <Text role='status' srOnly>
+                {status === STATUS.UPLOADING ? UPLOAD_IN_PROGRESS : ''}
+              </Text>
+            </Dialog.Body>
+            <Dialog.Footer gap={3}>
+              {result ? result.footer : formFooter}
+            </Dialog.Footer>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
   );
 };
 

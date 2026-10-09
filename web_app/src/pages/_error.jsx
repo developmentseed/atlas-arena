@@ -28,6 +28,7 @@ const ErrorPage = ({ statusCode }) => {
           as='h1'
           fontSize='4xl'
           fontWeight='bold'
+          lineHeight='shorter'
           color='gray.700'
           mb={2}
         >
@@ -41,7 +42,7 @@ const ErrorPage = ({ statusCode }) => {
         </Text>
 
         <Button
-          colorScheme='gray'
+          variant='subtle'
           size='lg'
           onClick={() => (window.location.href = '/')}
         >

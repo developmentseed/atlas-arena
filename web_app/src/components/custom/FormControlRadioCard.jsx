@@ -1,6 +1,5 @@
-import { FormControl, FormLabel, HStack, Flex } from '@chakra-ui/react';
+import { HStack, Field, RadioGroup } from '@chakra-ui/react';
 import RadioCard from '@/components/custom/RadioCard';
-import { useRadioGroup } from '@chakra-ui/react';
 import { useId } from 'react';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
 
@@ -13,16 +12,9 @@ const FormControlRadioCard = ({
   isDisabled = false,
 }) => {
   const headingId = useId();
-  const { getRootProps, getRadioProps } = useRadioGroup({
-    name: 'view_moce',
-    defaultValue: value,
-    onChange: handleAction,
-  });
-
-  const group = getRootProps();
 
   return (
-    <FormControl py={2} isDisabled={isDisabled} aria-labelledby={headingId}>
+    <Field.Root py={2} disabled={isDisabled} aria-labelledby={headingId}>
       <FormLabelFlex
         id={headingId}
         label={label}
@@ -30,17 +22,22 @@ const FormControlRadioCard = ({
         isDisabled={isDisabled}
         isGroup
       />
-      <HStack {...group} aria-labelledby={headingId} gap={0}>
-        {options.map((value, k) => {
-          const radio = getRadioProps({ value });
-          return (
-            <RadioCard key={value} isFirst={k == 0} {...radio}>
-              {value}
+      <RadioGroup.Root
+        name='view_mode'
+        defaultValue={value}
+        onValueChange={(e) => handleAction(e.value)}
+        disabled={isDisabled}
+        aria-labelledby={headingId}
+      >
+        <HStack gap={0}>
+          {options.map((option, k) => (
+            <RadioCard key={option} value={option} isFirst={k == 0}>
+              {option}
             </RadioCard>
-          );
-        })}
-      </HStack>
-    </FormControl>
+          ))}
+        </HStack>
+      </RadioGroup.Root>
+    </Field.Root>
   );
 };
 
