@@ -1,7 +1,6 @@
 import React from 'react';
 import { Container, Box, Flex } from '@chakra-ui/react';
 import InnerHeading from '@/components/custom/InnerHeading';
-// import VRTabs from '@/components/home/VRTabs';
 import InfoCards from '@/components/home/InfoCards';
 import Footer from '@/components/Footer';
 import ButtonLink from '@/components/custom/ButtonLink';

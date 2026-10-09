@@ -38,12 +38,13 @@ const Header = () => {
 
   return (
     <Box
+      bg='white'
       ref={headerRef}
-      bg='secondary.50'
-      py={4}
+      py={2}
       px={[4, null, 6]}
       borderBottom={'1px'}
-      borderBottomColor='gray.200'
+      borderBottomColor='gray.100'
+      boxShadow="sm"
     >
       <Flex alignItems={'center'} justifyContent={'space-between'}>
         <Box>
@@ -57,18 +58,18 @@ const Header = () => {
           >
             <Image
               src={AALogo.src}
-              height={['50px', null, '70px']}
+              height='48px'
               objectFit='cover'
-              m='-6'
-              pt='2'
+              m='-4'
+              pt="2"
             />
             <Text
-              fontSize='xl'
-              ml={[0, null, '-2']}
+              fontSize='md'
+              ml="-1"
               color='blue.800'
-              fontWeight={500}
+              fontWeight={600}
               lineHeight='21px'
-              letterSpacing={-0.5}
+              letterSpacing={0.5}
               textTransform='uppercase'
             >
               {PAGE_TITLE}
@@ -102,7 +103,7 @@ const Header = () => {
           zIndex={100}
           position='relative'
           mt={6}
-          bg='secondary.50'
+          bg='white'
         >
           <Stack as={'nav'} spacing={4}>
             {LINK_HEADER.map((item) => (

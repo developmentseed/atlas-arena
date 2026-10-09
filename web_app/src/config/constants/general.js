@@ -173,14 +173,14 @@ export const LEGEND_DELTA_VALUE = ['-1', '0', '1'];
 // HEIGHT HEADER
 // Fallback only: the real height is measured by Header and exposed as the
 // --header-h CSS variable. Use HEADER_HEIGHT_CSS in styles.
-export const H_HEADER = 66;
+export const H_HEADER = 65;
 export const HEADER_HEIGHT_CSS = `var(--header-h, ${H_HEADER}px)`;
 
 // HEIGHT MOBILE FILTER BAR (Explore)
 export const H_FILTER_BAR = 44;
 
 // LEGEND
-export const W_LEGEND = 232;
+export const W_LEGEND = 250;
 
 // BASEMAP (OpenFreeMap, no key needed)
 export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';

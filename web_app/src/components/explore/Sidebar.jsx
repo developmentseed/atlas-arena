@@ -456,7 +456,7 @@ const Sidebar = ({
         overflowY='auto'
         boxShadow={isCollapsed ? 'none' : 'sm'}
         borderRight={isCollapsed ? 'none' : '1px solid'}
-        borderColor='blackAlpha.400'
+        borderColor='blackAlpha.100'
         transition='all 0.3s ease'
       >
         {/* Hidden rather than unmounted, so the filter controls keep their

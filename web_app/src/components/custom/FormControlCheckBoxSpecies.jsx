@@ -31,6 +31,7 @@ const FormControlCheckBoxSpecies = ({
         onChange={handleAction}
         key={item.key}
         id={item.key}
+        size="sm"
         isDisabled={isDisabled || isLocked || isDisabledTmp}
       >
         {item.name}

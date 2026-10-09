@@ -50,11 +50,11 @@ const VirusLegend = ({ title, color, value, handleChange }) => {
       bg='transparent'
     >
       <Flex alignItems="center">
-        <Icon as={LuCircle} mr={2} color={colors[2]} fill='currentColor' />
+        <Icon as={LuCircle} mr={2} color={colors[2]} fontSize='xs' fill='currentColor' />
         <Text
-          fontSize='14px'
+          fontSize='xs'
+          fontWeight={500}
           color='base.700'
-          fontWeight={600}
           textTransform='capitalize'
         >
           {customTitle}
@@ -123,9 +123,9 @@ const HotSpotLegend = ({ labels = [], value = {}, handleChange = null }) => {
       justifyContent='space-between'
     >
       <Text
-        fontSize='14px'
+        fontSize='xs'
         fontWeight={600}
-        color='base.700'
+        color='base.600'
         textTransform='uppercase'
       >
         {LEGEND_HOTSPOT_TITLE}

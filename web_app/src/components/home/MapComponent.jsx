@@ -9,9 +9,17 @@ const BackdropBlur = () => (
     left={0}
     right={0}
     height='100%'
-    backdropFilter='blur(2px)'
+    backdropFilter='blur(20px)'
     zIndex={2}
-  />
+    sx={{
+        WebkitMaskImage: "linear-gradient(to bottom, black, transparent)",
+        maskImage: "linear-gradient(to bottom, black, transparent)",
+        WebkitMaskSize: "cover",
+        maskSize: "cover",
+        WebkitMaskRepeat: "no-repeat",
+        maskRepeat: "no-repeat"
+      }}
+    />
 );
 
 const MapComponent = () => {
@@ -22,7 +30,7 @@ const MapComponent = () => {
       left={0}
       w='100vw'
       h='100vh'
-      mt={{ base: '15%', md: '20%' }}
+      mt={{ base: '15%', md: '30%' }}
       zIndex={1}
       overflow='hidden'
       px={0}

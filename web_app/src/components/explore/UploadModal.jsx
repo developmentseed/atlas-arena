@@ -258,7 +258,7 @@ const UploadModal = ({
         <RadioGroup value={scenario} onChange={setScenario}>
           <Stack spacing={1}>
             {scenarios.map((item) => (
-              <Radio key={item.key} value={item.key} size='md'>
+              <Radio key={item.key} value={item.key} size='sm'>
                 <Text as='span' fontSize='sm'>
                   {item.name}
                 </Text>
