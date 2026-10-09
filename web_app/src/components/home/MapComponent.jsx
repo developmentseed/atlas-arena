@@ -11,15 +11,15 @@ const BackdropBlur = () => (
     height='100%'
     backdropFilter='blur(20px)'
     zIndex={2}
-    sx={{
-        WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)',
-        maskImage: 'linear-gradient(to bottom, black, transparent)',
-        WebkitMaskSize: 'cover',
-        maskSize: 'cover',
-        WebkitMaskRepeat: 'no-repeat',
-        maskRepeat: 'no-repeat'
-      }}
-    />
+    css={{
+      WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)',
+      maskImage: 'linear-gradient(to bottom, black, transparent)',
+      WebkitMaskSize: 'cover',
+      maskSize: 'cover',
+      WebkitMaskRepeat: 'no-repeat',
+      maskRepeat: 'no-repeat',
+    }}
+  />
 );
 
 const MapComponent = () => {

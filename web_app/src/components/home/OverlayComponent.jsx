@@ -42,13 +42,14 @@ const OverlayComponent = ({
           <ButtonLink
             href='/resources'
             text='Learn more'
-            colorScheme='blue'
+            colorPalette='blue'
             variant='outline'
+            borderColor='currentColor'
           />
           <ButtonLink
             href='/explore'
             text='Start Exploring'
-            colorScheme='blue'
+            colorPalette='blue'
           />
         </Flex>
       </Container>

@@ -1,9 +1,10 @@
-import { Link } from '@chakra-ui/next-js';
+import NextLink from 'next/link';
+import { Link } from '@chakra-ui/react';
 
 const CustomLink = ({ href, text }) => {
   return (
-    <Link href={href} color='blue.500'>
-      {text}
+    <Link color='blue.500' asChild>
+      <NextLink href={href}>{text}</NextLink>
     </Link>
   );
 };

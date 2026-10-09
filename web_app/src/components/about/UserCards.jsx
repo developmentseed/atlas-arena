@@ -17,11 +17,12 @@ const UserCard = ({
         fontSize='xs'
         key={key}
         href={item.is_mail ? `mailto:${item.link}` : item.link}
-        isExternal={true}
         textDecoration='underline'
         _hover={{
           color: 'blue.800',
         }}
+        target='_blank'
+        rel='noopener noreferrer'
       >
         {item.text}
       </Link>

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useToast } from '@chakra-ui/react';
+import { toaster } from '@/components/ui/toaster';
 import { useAuth } from '@/store/auth';
 import { setHashParams, useHashParams } from '@/libs/hashParams';
 import { findVirus, timeFrameKey, timeFrameName } from '@/libs/catalog';
@@ -30,7 +30,6 @@ const SIGN_IN_TOAST_ID = 'sign-in-to-view-job';
 export const useCustomJob = () => {
   const { job: jobParam, scenario: scenarioParam } = useHashParams();
   const { status: authStatus, enabled: authEnabled } = useAuth();
-  const toast = useToast();
 
   const jobId = jobParam || null;
   const scenario = isScenario(scenarioParam) ? scenarioParam : 'current';
@@ -49,35 +48,32 @@ export const useCustomJob = () => {
   const previewFileRef = useRef(null);
 
   // Toast, then drop the job from the URL (replace: the link was bad).
-  const dropJob = useCallback(
-    (title, description) => {
-      toast({
-        status: 'error',
-        title,
-        description,
-        isClosable: true,
-        duration: 8000,
-      });
-      setHashParams({ job: null, scenario: null });
-    },
-    [toast]
-  );
+  const dropJob = useCallback((title, description) => {
+    toaster.create({
+      type: 'error',
+      title,
+      description,
+      closable: true,
+      duration: 8000,
+    });
+    setHashParams({ job: null, scenario: null });
+  }, []);
 
   // A linked job needs signing in: prompt until signed in, dismissed, or the
   // job leaves the URL.
   useEffect(() => {
     if (!jobId || !authEnabled || authStatus !== 'signedOut') return;
-    if (!toast.isActive(SIGN_IN_TOAST_ID)) {
-      toast({
+    if (!toaster.isVisible(SIGN_IN_TOAST_ID)) {
+      toaster.create({
         id: SIGN_IN_TOAST_ID,
-        status: 'info',
+        type: 'info',
         title: SIGN_IN_TO_VIEW_JOB,
-        isClosable: true,
-        duration: null,
+        closable: true,
+        duration: Infinity,
       });
     }
-    return () => toast.close(SIGN_IN_TOAST_ID);
-  }, [jobId, authEnabled, authStatus, toast]);
+    return () => toaster.dismiss(SIGN_IN_TOAST_ID);
+  }, [jobId, authEnabled, authStatus]);
 
   useEffect(() => {
     setShowPoints(true);

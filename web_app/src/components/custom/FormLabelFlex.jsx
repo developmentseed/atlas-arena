@@ -1,4 +1,4 @@
-import { FormLabel, Flex, Heading } from '@chakra-ui/react';
+import { Field, Flex, Heading } from '@chakra-ui/react';
 import InfoTooltip from '@/components/custom/InfoTooltip';
 
 // Filter-panel section title, exposed as an <h2> so screen-reader users can
@@ -6,7 +6,7 @@ import InfoTooltip from '@/components/custom/InfoTooltip';
 // the heading/label so it doesn't leak into the control's accessible name.
 //
 // - Single controls (select): renders a <label> inside the heading, bound to
-//   the FormControl's field id.
+//   the Field's control id.
 // - Groups (radios, checkboxes): pass `id` and reference it from the group
 //   container via aria-labelledby instead of a for-based <label>.
 const FormLabelFlex = ({
@@ -33,9 +33,9 @@ const FormLabelFlex = ({
         {isGroup ? (
           label
         ) : (
-          <FormLabel m={0} fontSize='inherit' fontWeight='inherit'>
+          <Field.Label m={0} fontSize='inherit' fontWeight='inherit'>
             {label}
-          </FormLabel>
+          </Field.Label>
         )}
       </Heading>
       <InfoTooltip label={info} name={label} />

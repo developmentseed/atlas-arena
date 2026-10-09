@@ -9,7 +9,7 @@ import { buildPageTitle } from '@/config/constants/general';
 
 const About = ({ pageData }) => {
   return (
-    <Container maxW='container.lg' p={2}>
+    <Container maxW='1024px' p={2}>
       <PageTitle title={buildPageTitle('About')} />
       <Box my={4}>
         <InnerHeading {...pageData} />
