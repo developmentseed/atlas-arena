@@ -29,6 +29,9 @@ import {
   LEGEND_FOI_TITLE,
   LEGEND_FOI_TICKS,
 } from '@/config/constants/constants.explore';
+import PageTitle from '@/components/custom/PageTitle';
+import { buildPageTitle } from '@/config/constants/general';
+import { MAP_REGION_LABEL } from '@/config/constants/constants.explore';
 
 const BASENAME = (process.env.PUBLIC_URL || '').replace('//', '/');
 
@@ -247,6 +250,7 @@ const Explore = ({ mddata }) => {
       h='100%'
       flexDirection={{ base: 'column', md: 'row' }}
     >
+      <PageTitle title={buildPageTitle('Explore')} />
       <Sidebar
         handleFilterTilesId={handleFilterTilesId}
         filterTilesId={filterTilesId}
@@ -263,7 +267,14 @@ const Explore = ({ mddata }) => {
         onToggleFoi={() => customJob.setShowFoi((show) => !show)}
       />
       <Box flex={1} minH={0} minW={0} position='relative'>
-        <Box h='100%'>
+        <Box
+          id='explore-map'
+          role='region'
+          aria-label={MAP_REGION_LABEL}
+          tabIndex={-1}
+          _focus={{ outline: 'none' }}
+          h='100%'
+        >
           <Box ref={mapContainerRef} h='100%' w='100%'>
             <Map
               ref={mapRef}

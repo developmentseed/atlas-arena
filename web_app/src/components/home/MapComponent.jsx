@@ -12,12 +12,12 @@ const BackdropBlur = () => (
     backdropFilter='blur(20px)'
     zIndex={2}
     sx={{
-        WebkitMaskImage: "linear-gradient(to bottom, black, transparent)",
-        maskImage: "linear-gradient(to bottom, black, transparent)",
-        WebkitMaskSize: "cover",
-        maskSize: "cover",
-        WebkitMaskRepeat: "no-repeat",
-        maskRepeat: "no-repeat"
+        WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)',
+        maskImage: 'linear-gradient(to bottom, black, transparent)',
+        WebkitMaskSize: 'cover',
+        maskSize: 'cover',
+        WebkitMaskRepeat: 'no-repeat',
+        maskRepeat: 'no-repeat'
       }}
     />
 );
@@ -39,6 +39,7 @@ const MapComponent = () => {
         <BackdropBlur />
         <Image
           src={indexImage.src}
+          alt=''
           objectFit='cover'
           mixBlendMode='multiply'
           w='full'

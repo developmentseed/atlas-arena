@@ -3,6 +3,11 @@ export const PAGE_TITLE = 'AtlasArena';
 export const PAGE_KEYWORDS = 'AtlasArena';
 export const PAGE_DESCRIPTION = 'AtlasArena';
 export const PAGE_AUTHOR = 'Developmentseed & GeoCompas';
+export const HOME_PAGE_TITLE = `${PAGE_TITLE} | Predicting Arenavirus Risk`;
+
+// Unique, descriptive <title> per route (WCAG 2.4.2)
+export const buildPageTitle = (page = '') =>
+  page ? `${page} | ${PAGE_TITLE}` : PAGE_TITLE;
 
 // ATLASARENA API (atlasarena-model-infra, the CDK "ApiUrl" output). Must end in
 // '/'. Set NEXT_PUBLIC_ATLASARENA_API_URL (e.g. in .env.local) to point
@@ -24,6 +29,16 @@ export const LINK_HEADER = [
     isExternal: true,
   },
 ];
+export const MENU_OPEN = 'Open menu';
+export const MENU_CLOSE = 'Close menu';
+export const SKIP_TO_MAIN = 'Skip to main content';
+export const SKIP_TO_MAP = 'Skip to map';
+
+// INFO POPOVERS
+export const INFO_BUTTON_LABEL = (name = '') =>
+  name ? `More information about ${name}` : 'More information';
+export const INFO_POPOVER_LABEL = (name = '') =>
+  name ? `About ${name}` : 'More information';
 // FOOTER
 
 // ==============

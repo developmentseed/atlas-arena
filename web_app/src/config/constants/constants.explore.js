@@ -28,6 +28,10 @@ export const MODEL_INFO = 'model';
 
 // LEGEND
 export const LEGEND_OPACITY = 'Opacity';
+export const LEGEND_OPACITY_OF = (name = '') => `${LEGEND_OPACITY} of ${name}`;
+export const LEGEND_ADJUST_OPACITY = (name = '') => `Adjust opacity of ${name}`;
+export const LEGEND_SCALE = (min = '', max = '') =>
+  `Scale from ${min} to ${max}.`;
 export const LEGEND_SDM_TITLE = 'Species distribution';
 export const LEGEND_HOTSPOT_TITLE = 'Viral hotspot probability';
 export const LEGEND_HOTSPOT_DESC =
@@ -53,6 +57,7 @@ export const UPLOAD_DROPZONE_HINT =
 export const UPLOAD_ACCEPT = '.geojson,.json,application/geo+json';
 export const UPLOAD_CANCEL = 'Cancel';
 export const UPLOAD_SUBMIT = 'Upload';
+export const UPLOAD_IN_PROGRESS = 'Uploading';
 export const UPLOAD_SUCCESS_TITLE = 'Upload successful';
 export const UPLOAD_SUCCESS_TEXT = (count = 0) =>
   `${count.toLocaleString('en-US')} points uploaded`;
@@ -75,6 +80,8 @@ export const SIGN_IN_TO_VIEW_JOB = 'Sign in to view this model run';
 export const JOB_FAILED_TITLE = 'Model run failed';
 export const JOB_NOT_FOUND_TITLE = 'Model run not found';
 
+// MAP
+export const MAP_REGION_LABEL = 'Arenavirus risk map';
 // MODAL
 
 export const FIRST_LINE_MODAL = 'About the virus';

@@ -5,7 +5,7 @@ import {
   RadioGroup,
   Checkbox,
 } from '@chakra-ui/react';
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { DEFAULT_TIME } from '@/config/constants/general';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
 
@@ -21,6 +21,7 @@ const FormControlRadioTime = ({
 }) => {
   const [selectRadio, setSelectRadio] = useState(DEFAULT_TIME);
   const [selectCheck, setSelectCheck] = useState(false);
+  const headingId = useId();
 
   if (!options.length) return null;
 
@@ -35,7 +36,7 @@ const FormControlRadioTime = ({
         <Radio
           isChecked={shownRadio === item.name}
           key={item.key}
-          size="sm"
+          size='sm'
           value={item.key}
         >
           {item.name}
@@ -91,10 +92,19 @@ const FormControlRadioTime = ({
     <FormControl
       my={4}
       isDisabled={isDisabled}
+      role='group'
+      aria-labelledby={headingId}
       aria-describedby={isLocked ? describedBy : undefined}
     >
-      <FormLabelFlex label={label} info={info} isDisabled={isDisabled} />
+      <FormLabelFlex
+        id={headingId}
+        label={label}
+        info={info}
+        isDisabled={isDisabled}
+        isGroup
+      />
       <RadioGroup
+        aria-labelledby={headingId}
         value={shownRadio}
         onChange={handleChangeRadio}
         isDisabled={isDisabled || isLocked}
@@ -108,7 +118,7 @@ const FormControlRadioTime = ({
           onChange={handleChangeCheck}
           isChecked={selectCheck && !isLocked}
           isDisabled={isLocked || selectRadio == DEFAULT_TIME}
-          size="sm"
+          size='sm'
         >
           Show Delta
         </Checkbox>

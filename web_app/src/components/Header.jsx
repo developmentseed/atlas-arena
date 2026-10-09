@@ -15,7 +15,12 @@ import { Link as NextLink } from '@chakra-ui/next-js';
 import AALogo from '/public/assets/img/AALogo.svg';
 import NavLink from '@/components/custom/NavLink';
 import AuthButton from '@/components/AuthButton';
-import { LINK_HEADER, PAGE_TITLE } from '@/config/constants/general';
+import {
+  LINK_HEADER,
+  MENU_CLOSE,
+  MENU_OPEN,
+  PAGE_TITLE,
+} from '@/config/constants/general';
 
 const Header = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -38,13 +43,14 @@ const Header = () => {
 
   return (
     <Box
+      as='header'
       bg='white'
       ref={headerRef}
       py={2}
       px={[4, null, 6]}
       borderBottom={'1px'}
       borderBottomColor='gray.100'
-      boxShadow="sm"
+      boxShadow='sm'
     >
       <Flex alignItems={'center'} justifyContent={'space-between'}>
         <Box>
@@ -58,14 +64,15 @@ const Header = () => {
           >
             <Image
               src={AALogo.src}
+              alt=''
               height='48px'
               objectFit='cover'
               m='-4'
-              pt="2"
+              pt='2'
             />
             <Text
               fontSize='md'
-              ml="-1"
+              ml='-1'
               color='blue.800'
               fontWeight={600}
               lineHeight='21px'
@@ -90,7 +97,9 @@ const Header = () => {
         <IconButton
           size={'sm'}
           icon={<Icon as={isOpen ? LuX : LuMenu} />}
-          aria-label={'Open Menu'}
+          aria-label={isOpen ? MENU_CLOSE : MENU_OPEN}
+          aria-expanded={isOpen}
+          aria-controls='mobile-nav'
           colorScheme='blue'
           display={{ md: 'none' }}
           variant='ghost'
@@ -105,7 +114,7 @@ const Header = () => {
           mt={6}
           bg='white'
         >
-          <Stack as={'nav'} spacing={4}>
+          <Stack as={'nav'} id='mobile-nav' spacing={4}>
             {LINK_HEADER.map((item) => (
               <NavLink key={item.text} {...item} />
             ))}
