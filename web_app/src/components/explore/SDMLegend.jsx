@@ -12,6 +12,7 @@ import {
   UNIT_SDM,
   UNIT_DELTA,
   LEGEND_SDM_TITLE,
+  LEGEND_SCALE,
 } from '@/config/constants/constants.explore';
 import LayerOpacityControl from '@/components/explore/LayerOpacityControl';
 
@@ -157,7 +158,7 @@ const SDMLegend = ({
         {heading || `${LEGEND_SDM_TITLE} ${unit}`}
       </Heading>
       <Text srOnly>
-        {`Scale from ${labelsUnits[0]} to ${labelsUnits[labelsUnits.length - 1]}.`}
+        {LEGEND_SCALE(labelsUnits[0], labelsUnits[labelsUnits.length - 1])}
       </Text>
       <Box
         as='ul'

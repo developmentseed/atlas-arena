@@ -36,7 +36,7 @@ const FormControlRadioTime = ({
         <Radio
           isChecked={shownRadio === item.name}
           key={item.key}
-          size="sm"
+          size='sm'
           value={item.key}
         >
           {item.name}
@@ -118,7 +118,7 @@ const FormControlRadioTime = ({
           onChange={handleChangeCheck}
           isChecked={selectCheck && !isLocked}
           isDisabled={isLocked || selectRadio == DEFAULT_TIME}
-          size="sm"
+          size='sm'
         >
           Show Delta
         </Checkbox>

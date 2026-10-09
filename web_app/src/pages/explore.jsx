@@ -211,7 +211,6 @@ const Explore = ({ mddata }) => {
     color: i.color,
   }));
 
-
   const labelSDM = sortList(
     getUniqueCombinations(
       sdmItems.filter((i) => i.species),

@@ -29,6 +29,16 @@ export const LINK_HEADER = [
     isExternal: true,
   },
 ];
+export const MENU_OPEN = 'Open menu';
+export const MENU_CLOSE = 'Close menu';
+export const SKIP_TO_MAIN = 'Skip to main content';
+export const SKIP_TO_MAP = 'Skip to map';
+
+// INFO POPOVERS
+export const INFO_BUTTON_LABEL = (name = '') =>
+  name ? `More information about ${name}` : 'More information';
+export const INFO_POPOVER_LABEL = (name = '') =>
+  name ? `About ${name}` : 'More information';
 // FOOTER
 
 // ==============

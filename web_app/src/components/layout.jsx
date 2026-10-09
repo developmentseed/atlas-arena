@@ -1,6 +1,7 @@
 import { useAppContext } from '@/store/context';
 import Header from '@/components/Header';
 import SkipLink from '@/components/custom/SkipLink';
+import { SKIP_TO_MAIN, SKIP_TO_MAP } from '@/config/constants/general';
 import { useRouter } from 'next/router';
 import { Box, Flex } from '@chakra-ui/react';
 import { useEffect } from 'react';
@@ -47,8 +48,8 @@ const Layout = ({ children }) => {
       p={0}
       m={0}
     >
-      {isExplore && <SkipLink href='#explore-map'>Skip to map</SkipLink>}
-      <SkipLink href='#main-content'>Skip to main content</SkipLink>
+      {isExplore && <SkipLink href='#explore-map'>{SKIP_TO_MAP}</SkipLink>}
+      <SkipLink href='#main-content'>{SKIP_TO_MAIN}</SkipLink>
       <Header />
       <Flex
         as='main'

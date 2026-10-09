@@ -15,7 +15,12 @@ import { Link as NextLink } from '@chakra-ui/next-js';
 import AALogo from '/public/assets/img/AALogo.svg';
 import NavLink from '@/components/custom/NavLink';
 import AuthButton from '@/components/AuthButton';
-import { LINK_HEADER, PAGE_TITLE } from '@/config/constants/general';
+import {
+  LINK_HEADER,
+  MENU_CLOSE,
+  MENU_OPEN,
+  PAGE_TITLE,
+} from '@/config/constants/general';
 
 const Header = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -45,7 +50,7 @@ const Header = () => {
       px={[4, null, 6]}
       borderBottom={'1px'}
       borderBottomColor='gray.100'
-      boxShadow="sm"
+      boxShadow='sm'
     >
       <Flex alignItems={'center'} justifyContent={'space-between'}>
         <Box>
@@ -63,11 +68,11 @@ const Header = () => {
               height='48px'
               objectFit='cover'
               m='-4'
-              pt="2"
+              pt='2'
             />
             <Text
               fontSize='md'
-              ml="-1"
+              ml='-1'
               color='blue.800'
               fontWeight={600}
               lineHeight='21px'
@@ -92,7 +97,7 @@ const Header = () => {
         <IconButton
           size={'sm'}
           icon={<Icon as={isOpen ? LuX : LuMenu} />}
-          aria-label={isOpen ? 'Close menu' : 'Open menu'}
+          aria-label={isOpen ? MENU_CLOSE : MENU_OPEN}
           aria-expanded={isOpen}
           aria-controls='mobile-nav'
           colorScheme='blue'

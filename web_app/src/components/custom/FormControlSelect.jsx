@@ -16,7 +16,7 @@ const FormControlSelect = ({
       <FormLabelFlex label={label} info={info} isDisabled={isDisabled} />
       <Select
         bg='white'
-        size="sm"
+        size='sm'
         borderColor='gray.200'
         value={value}
         onChange={handleAction}

@@ -8,19 +8,20 @@ import {
   PopoverBody,
 } from '@chakra-ui/react';
 import { LuInfo } from 'react-icons/lu';
+import {
+  INFO_BUTTON_LABEL,
+  INFO_POPOVER_LABEL,
+} from '@/config/constants/general';
 
 // A real <button> trigger so the help text is reachable by keyboard (Tab,
 // Enter/Space) and announced to screen readers, not just revealed on hover.
 const InfoTooltip = ({ label = '', name = '' }) => {
   if (!label) return null;
-  const buttonLabel = name
-    ? `More information about ${name}`
-    : 'More information';
   return (
     <Popover placement='right' isLazy>
       <PopoverTrigger>
         <IconButton
-          aria-label={buttonLabel}
+          aria-label={INFO_BUTTON_LABEL(name)}
           icon={<Icon as={LuInfo} boxSize={4} />}
           variant='ghost'
           size='xs'
@@ -32,7 +33,7 @@ const InfoTooltip = ({ label = '', name = '' }) => {
         />
       </PopoverTrigger>
       <PopoverContent
-        aria-label={name ? `About ${name}` : 'More information'}
+        aria-label={INFO_POPOVER_LABEL(name)}
         w='auto'
         maxW='xs'
         bg='gray.700'

@@ -28,6 +28,10 @@ export const MODEL_INFO = 'model';
 
 // LEGEND
 export const LEGEND_OPACITY = 'Opacity';
+export const LEGEND_OPACITY_OF = (name = '') => `${LEGEND_OPACITY} of ${name}`;
+export const LEGEND_ADJUST_OPACITY = (name = '') => `Adjust opacity of ${name}`;
+export const LEGEND_SCALE = (min = '', max = '') =>
+  `Scale from ${min} to ${max}.`;
 export const LEGEND_SDM_TITLE = 'Species distribution';
 export const LEGEND_HOTSPOT_TITLE = 'Viral hotspot probability';
 export const LEGEND_HOTSPOT_DESC =

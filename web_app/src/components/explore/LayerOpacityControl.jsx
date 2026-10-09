@@ -14,7 +14,11 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { LuDroplet } from 'react-icons/lu';
-import { LEGEND_OPACITY } from '@/config/constants/constants.explore';
+import {
+  LEGEND_OPACITY,
+  LEGEND_OPACITY_OF,
+  LEGEND_ADJUST_OPACITY,
+} from '@/config/constants/constants.explore';
 
 // Per-layer opacity control in the map legend. The trigger is a real,
 // labelled button so it is reachable by keyboard and screen readers.
@@ -23,7 +27,7 @@ const LayerOpacityControl = ({
   value = 100,
   handleChange = null,
 }) => {
-  const controlLabel = `Adjust opacity of ${name}`;
+  const controlLabel = LEGEND_ADJUST_OPACITY(name);
   return (
     <Popover placement='bottom-end' isLazy>
       <PopoverTrigger>
@@ -54,7 +58,7 @@ const LayerOpacityControl = ({
             {LEGEND_OPACITY}
           </Text>
           <Slider
-            aria-label={`${LEGEND_OPACITY} of ${name}`}
+            aria-label={LEGEND_OPACITY_OF(name)}
             getAriaValueText={(v) => `${v}%`}
             defaultValue={value}
             onChange={handleChange}
