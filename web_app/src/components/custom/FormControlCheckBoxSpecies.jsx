@@ -1,5 +1,5 @@
 import { ALL_VIRUS } from '@/config/constants/general';
-import { Stack, Checkbox, Text, Field } from '@chakra-ui/react';
+import { Box, Stack, Checkbox, Text } from '@chakra-ui/react';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
 import { useId } from 'react';
 
@@ -44,10 +44,11 @@ const FormControlCheckBoxSpecies = ({
     );
   });
 
+  // A plain group, not a Field: checkboxes inside a Field take its ids, so
+  // they would all share one input id and label.
   return (
-    <Field.Root
+    <Box
       my={4}
-      disabled={isDisabled}
       role='group'
       aria-labelledby={headingId}
       aria-describedby={notice ? noticeId : undefined}
@@ -67,7 +68,7 @@ const FormControlCheckBoxSpecies = ({
       <Stack pl={0} mt={1} gap={1}>
         {renderOptions}
       </Stack>
-    </Field.Root>
+    </Box>
   );
 };
 export default FormControlCheckBoxSpecies;

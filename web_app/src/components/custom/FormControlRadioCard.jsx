@@ -1,4 +1,4 @@
-import { HStack, Field, RadioGroup } from '@chakra-ui/react';
+import { Box, HStack, RadioGroup } from '@chakra-ui/react';
 import RadioCard from '@/components/custom/RadioCard';
 import { useId } from 'react';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
@@ -14,7 +14,7 @@ const FormControlRadioCard = ({
   const headingId = useId();
 
   return (
-    <Field.Root py={2} disabled={isDisabled} aria-labelledby={headingId}>
+    <Box py={2} role='group' aria-labelledby={headingId}>
       <FormLabelFlex
         id={headingId}
         label={label}
@@ -37,7 +37,7 @@ const FormControlRadioCard = ({
           ))}
         </HStack>
       </RadioGroup.Root>
-    </Field.Root>
+    </Box>
   );
 };
 

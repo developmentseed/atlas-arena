@@ -1,4 +1,4 @@
-import { Stack, RadioGroup, Checkbox, Field } from '@chakra-ui/react';
+import { Box, Stack, RadioGroup, Checkbox } from '@chakra-ui/react';
 import { useId, useState } from 'react';
 import { DEFAULT_TIME } from '@/config/constants/general';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
@@ -80,9 +80,10 @@ const FormControlRadioTime = ({
   };
 
   return (
-    <Field.Root
+    // A plain group, not a Field: the Show Delta checkbox would take the
+    // Field's ids.
+    <Box
       my={4}
-      disabled={isDisabled}
       role='group'
       aria-labelledby={headingId}
       aria-describedby={isLocked ? describedBy : undefined}
@@ -119,7 +120,7 @@ const FormControlRadioTime = ({
           <Checkbox.Label fontWeight='normal'>Show Delta</Checkbox.Label>
         </Checkbox.Root>
       </Stack>
-    </Field.Root>
+    </Box>
   );
 };
 export default FormControlRadioTime;

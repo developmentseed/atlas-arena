@@ -14,8 +14,11 @@ const FormControlSelect = ({
   return (
     <Field.Root py={2} disabled={isDisabled}>
       <FormLabelFlex label={label} info={info} isDisabled={isDisabled} />
-      <NativeSelect.Root size='sm' disabled={isDisabled || isLocked}>
+      {/* Inside a Field, NativeSelect.Root ignores `disabled` (the field's
+          own state wins), so set it on the select itself. */}
+      <NativeSelect.Root size='sm'>
         <NativeSelect.Field
+          disabled={isDisabled || isLocked}
           bg='white'
           borderColor='gray.200'
           value={value}
