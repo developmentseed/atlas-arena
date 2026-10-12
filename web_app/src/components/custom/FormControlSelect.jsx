@@ -1,6 +1,8 @@
-import { NativeSelect, Field } from '@chakra-ui/react';
+import { useMemo } from 'react';
+import { Field, Portal, Select, createListCollection } from '@chakra-ui/react';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
 
+// handleAction is called with the selected option's key.
 const FormControlSelect = ({
   label,
   options,
@@ -11,28 +13,53 @@ const FormControlSelect = ({
   isLocked = false,
   describedBy,
 }) => {
+  const collection = useMemo(
+    () =>
+      createListCollection({
+        items: options,
+        itemToString: (item) => item.name,
+        itemToValue: (item) => item.key,
+      }),
+    [options]
+  );
+
   return (
     <Field.Root py={2} disabled={isDisabled}>
       <FormLabelFlex label={label} info={info} isDisabled={isDisabled} />
-      {/* Inside a Field, NativeSelect.Root ignores `disabled` (the field's
-          own state wins), so set it on the select itself. */}
-      <NativeSelect.Root size='sm'>
-        <NativeSelect.Field
-          disabled={isDisabled || isLocked}
-          bg='white'
-          borderColor='gray.200'
-          value={value}
-          onChange={handleAction}
-          aria-describedby={isLocked ? describedBy : undefined}
-        >
-          {options.map((i) => (
-            <option key={i.key} value={i.key}>
-              {i.name}
-            </option>
-          ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator />
-      </NativeSelect.Root>
+      <Select.Root
+        collection={collection}
+        size='sm'
+        value={value ? [value] : []}
+        onValueChange={(details) => handleAction(details.value[0])}
+        disabled={isDisabled || isLocked}
+        positioning={{ sameWidth: true }}
+      >
+        <Select.HiddenSelect />
+        <Select.Control>
+          <Select.Trigger
+            bg='white'
+            borderColor='gray.200'
+            aria-describedby={isLocked ? describedBy : undefined}
+          >
+            <Select.ValueText />
+          </Select.Trigger>
+          <Select.IndicatorGroup>
+            <Select.Indicator />
+          </Select.IndicatorGroup>
+        </Select.Control>
+        <Portal>
+          <Select.Positioner>
+            <Select.Content>
+              {collection.items.map((item) => (
+                <Select.Item key={item.key} item={item}>
+                  {item.name}
+                  <Select.ItemIndicator />
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Positioner>
+        </Portal>
+      </Select.Root>
     </Field.Root>
   );
 };

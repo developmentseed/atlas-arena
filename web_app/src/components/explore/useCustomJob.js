@@ -143,7 +143,7 @@ export const useCustomJob = () => {
     };
   }, [active, jobId, scenario, dropJob]);
 
-  // Upload modal hooks (UploadModal's onUpload / onUploadSuccess / onFileChange).
+  // Run Models hooks (RunModelsPanel's onUpload / onUploadSuccess / onFileChange).
   const upload = async ({ species, scenario: timeFrame, file }) => {
     const { fc, pointCount } = await readPresence(file);
     const newJobId = await submitJob({

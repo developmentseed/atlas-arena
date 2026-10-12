@@ -1,32 +1,28 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '@/store/context';
 import FormControlCheckBoxSpecies from '@/components/custom/FormControlCheckBoxSpecies';
 import FormControlSelect from '@/components/custom/FormControlSelect';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
 import FormControlText from '@/components/custom/FormControlText';
-import UploadModal from '@/components/explore/UploadModal';
-import { RequireAuth } from '@/store/auth';
+import RunModelsPanel from '@/components/explore/RunModelsPanel';
+import { useAuth } from '@/store/auth';
 import {
   Box,
   Button,
   Flex,
-  Icon,
   IconButton,
-  Spinner,
-  Stack,
-  Text,
+  Portal,
+  Tabs,
+  Tooltip,
   useBreakpointValue,
 } from '@chakra-ui/react';
 import {
-  LuCheck,
   LuChevronDown,
   LuChevronUp,
   LuPanelLeftClose,
   LuPanelLeftOpen,
   LuSlidersHorizontal,
-  LuUpload,
-  LuX,
 } from 'react-icons/lu';
 
 import {
@@ -47,12 +43,12 @@ import {
   SPECIES_INFO,
   MODEL_LABEL,
   MODEL_INFO,
-  UPLOAD_BUTTON,
-  CLEAR_CUSTOM_DATA_BUTTON,
   CUSTOM_DATA_NOTICE,
-  JOB_STATUS_TEXT,
-  SHOW_POINTS_LABEL,
-  SHOW_FOI_LABEL,
+  TAB_EXPLORE,
+  TAB_RUN,
+  TAB_RUN_SIGNED_OUT,
+  RUN_DESCRIPTION,
+  RESULTS_DESCRIPTION,
   FILTERS_SHOW,
   FILTERS_HIDE,
 } from '@/config/constants/constants.explore';
@@ -60,11 +56,17 @@ import {
 // Shared by the locked controls (aria-describedby) while custom data is shown
 const CUSTOM_DATA_NOTICE_ID = 'custom-data-notice';
 const DEFAULT_SDM_TOGGLE = true;
-// customData: details of the last successful custom upload, or null
+export const SIDEBAR_TABS = { EXPLORE: 'explore', RUN: 'run' };
+
+// customData: details of the loaded custom model run, or null.
+// tab / onTabChange: the selected sidebar tab (SIDEBAR_TABS), owned by the page.
 const Sidebar = ({
   handleFilterTilesId,
   filterTilesId,
+  tab = SIDEBAR_TABS.EXPLORE,
+  onTabChange,
   customData = null,
+  previewCount = null,
   onUpload,
   onUploadSuccess,
   onFileChange,
@@ -77,6 +79,8 @@ const Sidebar = ({
   onToggleFoi,
 }) => {
   const { allVirus, allSpecies, allTimeFrame, allModels } = useAppContext();
+  const { status: authStatus } = useAuth();
+  const canRunModels = authStatus === 'signedIn';
 
   // Desktop: side panel, open by default. Mobile: top bar with a panel that
   // slides down over the map, closed by default so the map is visible.
@@ -94,14 +98,6 @@ const Sidebar = ({
     } else {
       setIsCollapsed(!isCollapsed);
     }
-  };
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const uploadButtonRef = useRef(null);
-
-  // the Clear button disappears once clicked, so keep focus in the panel
-  const handleClearCustomData = () => {
-    onClearCustomData();
-    if (uploadButtonRef.current) uploadButtonRef.current.focus();
   };
 
   const [selectedVirus, setSelectedVirus] = useState('');
@@ -137,8 +133,7 @@ const Sidebar = ({
     });
   };
 
-  const handleVirusChange = (event) => {
-    const value = event.target.value;
+  const handleVirusChange = (value) => {
     let species = [];
     if (selectedHotSpot) {
       if (value === ALL_VIRUS) {
@@ -202,14 +197,14 @@ const Sidebar = ({
     });
   };
 
-  const handleModelChange = (event) => {
-    setSelectedModel(event.target.value);
+  const handleModelChange = (model) => {
+    setSelectedModel(model);
     // update State
     handleFilterTilesId({
       virus: selectedVirus,
       species: selectedSpecies,
       time_frame: selectedTimeFrame,
-      model: event.target.value,
+      model,
       hotspot: true,
     });
   };
@@ -251,9 +246,8 @@ const Sidebar = ({
     }
   };
 
-  const filterControls = (
+  const exploreControls = (
     <>
-      <FormControlText label={SIDEBAR_TITLE} text={SIDEBAR_SUBTITLE} />
       <FormControlSelect
         label={VIRUS_LABEL}
         options={allVirus}
@@ -302,74 +296,100 @@ const Sidebar = ({
         isLocked={!!customData}
         describedBy={CUSTOM_DATA_NOTICE_ID}
       />
-      <RequireAuth>
-        <Stack gap={2} mt='auto' pt={4}>
-          {customData && hasFoi && (
-            <FormControlSwitch
-              label={SHOW_FOI_LABEL}
-              value={showFoi}
-              handleAction={onToggleFoi}
-            />
-          )}
-          {customData && hasPoints && (
-            <FormControlSwitch
-              label={SHOW_POINTS_LABEL}
-              value={showPoints}
-              handleAction={onTogglePoints}
-            />
-          )}
-          {customData && JOB_STATUS_TEXT[customData.status] && (
-            <Flex
-              role='status'
-              alignItems='center'
-              gap={2}
-              fontSize='sm'
-              fontWeight={600}
-              color='blue.600'
-            >
-              {customData.status === 'SUCCEEDED' ? (
-                <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
-              ) : (
-                <Spinner size='xs' aria-hidden='true' />
-              )}
-              <Text>{JOB_STATUS_TEXT[customData.status]}</Text>
-            </Flex>
-          )}
-          {customData && (
-            <Button
-              variant='outline'
-              colorPalette='blue'
-              bg='white'
-              onClick={handleClearCustomData}
-            >
-              <LuX />
-              {CLEAR_CUSTOM_DATA_BUTTON}
-            </Button>
-          )}
-          <Button
-            ref={uploadButtonRef}
-            variant='solid'
-            colorPalette='blue'
-            onClick={() => setUploadModalOpen(true)}
-          >
-            <LuUpload />
-            {UPLOAD_BUTTON}
-          </Button>
-        </Stack>
-      </RequireAuth>
     </>
   );
 
-  const uploadModal = (
-    <RequireAuth>
-      <UploadModal
-        isOpen={uploadModalOpen}
-        onClose={() => setUploadModalOpen(false)}
-        onUpload={onUpload}
-        onUploadSuccess={onUploadSuccess}
-        onFileChange={onFileChange}
-      />
-    </RequireAuth>
+  const runTrigger = (
+    <Tabs.Trigger
+      value={SIDEBAR_TABS.RUN}
+      disabled={!canRunModels}
+      pointerEvents={canRunModels ? undefined : 'none'}
+      flex={1}
+      whiteSpace='nowrap'
+    >
+      {TAB_RUN}
+    </Tabs.Trigger>
+  );
+
+  const panelContent = (
+    <>
+      <Tabs.Root
+        value={tab}
+        onValueChange={(e) => onTabChange(e.value)}
+        variant='enclosed'
+        colorPalette='blue'
+        fitted
+        display='flex'
+        flexDirection='column'
+        flex={1}
+      >
+        <Tabs.List w='full'>
+          <Tabs.Trigger
+            value={SIDEBAR_TABS.EXPLORE}
+            flex={1}
+            whiteSpace='nowrap'
+          >
+            {TAB_EXPLORE}
+          </Tabs.Trigger>
+          {canRunModels ? (
+            runTrigger
+          ) : (
+            <Tooltip.Root openDelay={100} positioning={{ placement: 'top' }}>
+              <Tooltip.Trigger asChild>
+                <Box as='span' display='flex' flex={1}>
+                  {runTrigger}
+                </Box>
+              </Tooltip.Trigger>
+              <Portal>
+                <Tooltip.Positioner>
+                  <Tooltip.Content>
+                    <Tooltip.Arrow>
+                      <Tooltip.ArrowTip />
+                    </Tooltip.Arrow>
+                    {TAB_RUN_SIGNED_OUT}
+                  </Tooltip.Content>
+                </Tooltip.Positioner>
+              </Portal>
+            </Tooltip.Root>
+          )}
+          <Tabs.Indicator rounded='l2' />
+        </Tabs.List>
+        <Tabs.Content value={SIDEBAR_TABS.EXPLORE}>
+          <FormControlText label={SIDEBAR_TITLE} text={SIDEBAR_SUBTITLE} />
+          {exploreControls}
+        </Tabs.Content>
+        <Tabs.Content
+          value={SIDEBAR_TABS.RUN}
+          flex={1}
+          flexDirection='column'
+          css={{ '&:not([hidden])': { display: 'flex' } }}
+        >
+          <FormControlText
+            label={TAB_RUN}
+            text={
+              customData && customData.status === 'SUCCEEDED'
+                ? RESULTS_DESCRIPTION
+                : RUN_DESCRIPTION
+            }
+          />
+          <RunModelsPanel
+            customData={customData}
+            onUpload={onUpload}
+            onUploadSuccess={onUploadSuccess}
+            onFileChange={onFileChange}
+            onClearCustomData={onClearCustomData}
+            previewCount={previewCount}
+            onTimeFrameChange={handleTimeFrameChange}
+            hasFoi={hasFoi}
+            showFoi={showFoi}
+            onToggleFoi={onToggleFoi}
+            hasPoints={hasPoints}
+            showPoints={showPoints}
+            onTogglePoints={onTogglePoints}
+          />
+        </Tabs.Content>
+      </Tabs.Root>
+    </>
   );
 
   if (isMobile) {
@@ -433,10 +453,9 @@ const Sidebar = ({
               isMobileOpen ? '0s' : '0.3s'
             }`}
           >
-            {filterControls}
+            {panelContent}
           </Box>
         </Box>
-        {uploadModal}
       </Box>
     );
   }
@@ -466,7 +485,7 @@ const Sidebar = ({
           h='full'
           minW='282px'
         >
-          {filterControls}
+          {panelContent}
         </Box>
       </Box>
       {/* A tab docked to the sidebar's right edge (square on the left, flush
@@ -494,7 +513,6 @@ const Sidebar = ({
       >
         {isCollapsed ? <LuPanelLeftOpen /> : <LuPanelLeftClose />}
       </IconButton>
-      {uploadModal}
     </Flex>
   );
 };

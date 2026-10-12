@@ -15,6 +15,7 @@ const NavLink = ({ href, text, isExternal = false }) => {
       fontSize='xs'
       color={isActive ? 'blue.800' : 'gray.500'}
       letterSpacing={0.8}
+      borderRadius={0}
       boxShadow={isActive ? '0 2px 0 0 var(--chakra-colors-blue-800)' : 'none'}
       _hover={{
         textDecoration: 'none',
