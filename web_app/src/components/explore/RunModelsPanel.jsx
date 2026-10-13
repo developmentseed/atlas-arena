@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
   Alert,
   Badge,
   Box,
   Button,
+  Checkbox,
   Circle,
   CloseButton,
   Field,
@@ -23,6 +24,13 @@ import {
 } from '@chakra-ui/react';
 import { LuCheck, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
+import {
+  FOI_SPECIES,
+  foiPathogens,
+  matchSpecies,
+  speciesKey,
+  virusesForSpecies,
+} from '@/libs/foiParams';
 import { DEFAULT_TIME } from '@/config/constants/general';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
@@ -117,11 +125,8 @@ const fieldStep =
     </Field.Root>
   );
 
-const virusesFor = (allSpecies, speciesName) =>
-  (
-    allSpecies.find((i) => i.name === speciesName || i.key === speciesName) ||
-    {}
-  ).virus || [];
+const speciesName = (key) =>
+  (FOI_SPECIES.find((item) => item.key === key) || {}).name || key;
 
 // The "Run Models" tab: upload presence data and submit a model run, follow
 // its progress, then show the result's controls. Uses the custom job hooks
@@ -133,6 +138,8 @@ const RunModelsPanel = ({
   onFileChange = null,
   onClearCustomData = null,
   previewCount = null,
+  previewName = null,
+  linkedViruses = [],
   onTimeFrameChange,
   hasFoi = false,
   showFoi = true,
@@ -141,9 +148,12 @@ const RunModelsPanel = ({
   showPoints = true,
   onTogglePoints,
 }) => {
-  const { allSpecies, allModels, allTimeFrame } = useAppContext();
+  const { allModels, allTimeFrame } = useAppContext();
+  const pathogenHeadingId = useId();
 
   const [species, setSpecies] = useState('');
+  // The checked pathogens, or null for all of the species' viruses.
+  const [checkedPathogens, setCheckedPathogens] = useState(null);
   const [model, setModel] = useState('');
   const [status, setStatus] = useState(STATUS.IDLE);
   const [pointCount, setPointCount] = useState(null);
@@ -169,11 +179,33 @@ const RunModelsPanel = ({
 
   const selectedSpecies =
     species ||
-    (customData && customData.species) ||
-    (allSpecies[0] && allSpecies[0].key) ||
+    speciesKey(customData && customData.species) ||
+    (FOI_SPECIES[0] && FOI_SPECIES[0].key) ||
     '';
   const selectedModel = model || (allModels[0] && allModels[0].key) || '';
-  const pathogens = virusesFor(allSpecies, selectedSpecies);
+  const speciesViruses = virusesForSpecies(selectedSpecies);
+  const pathogens = checkedPathogens ?? speciesViruses;
+
+  // A new species starts with all of its pathogens checked.
+  const selectSpecies = (key) => {
+    setSpecies(key);
+    setCheckedPathogens(null);
+  };
+
+  const togglePathogen = (virus) =>
+    setCheckedPathogens(
+      pathogens.includes(virus)
+        ? pathogens.filter((v) => v !== virus)
+        : speciesViruses.filter((v) => v === virus || pathogens.includes(v))
+    );
+
+  // Pre-select the species a picked file's layer name refers to.
+  useEffect(() => {
+    const key = matchSpecies(previewName);
+    if (!key) return;
+    setSpecies(key);
+    setCheckedPathogens(null);
+  }, [previewName]);
 
   // After "Upload new dataset", the results are replaced by the form: move
   // focus to its first step so it isn't lost with the removed button.
@@ -190,7 +222,8 @@ const RunModelsPanel = ({
     try {
       const result = await onUpload({
         scenario: UPLOAD_SCENARIO,
-        species: selectedSpecies,
+        species: speciesName(selectedSpecies),
+        pathogens: foiPathogens(selectedSpecies, pathogens),
         file,
       });
       const count = (result && result.pointCount) || 0;
@@ -199,7 +232,7 @@ const RunModelsPanel = ({
         onUploadSuccess({
           ...result,
           scenario: UPLOAD_SCENARIO,
-          species: selectedSpecies,
+          species: speciesName(selectedSpecies),
           file,
           pointCount: count,
         });
@@ -215,7 +248,7 @@ const RunModelsPanel = ({
 
   const handleNewDataset = () => {
     fileUpload.clearFiles();
-    setSpecies('');
+    selectSpecies('');
     setPointCount(null);
     setStatus(STATUS.IDLE);
     focusDropzoneOnReset.current = true;
@@ -223,7 +256,6 @@ const RunModelsPanel = ({
   };
 
   if (isSucceeded) {
-    const linkedViruses = virusesFor(allSpecies, customData.species);
     const count = previewCount ?? pointCount;
     return (
       <Flex direction='column' flex={1} gap={4}>
@@ -434,9 +466,9 @@ const RunModelsPanel = ({
               bg='white'
               borderColor='gray.300'
               value={selectedSpecies}
-              onChange={(event) => setSpecies(event.target.value)}
+              onChange={(event) => selectSpecies(event.target.value)}
             >
-              {allSpecies.map((item) => (
+              {FOI_SPECIES.map((item) => (
                 <option key={item.key} value={item.key}>
                   {item.name}
                 </option>
@@ -449,17 +481,38 @@ const RunModelsPanel = ({
         <Step
           number={3}
           label={
-            <Field.Label {...stepLabelProps}>{RUN_STEP_PATHOGEN}</Field.Label>
+            <Text id={pathogenHeadingId} {...stepLabelProps}>
+              {RUN_STEP_PATHOGEN}
+            </Text>
           }
           badge={RUN_PATHOGEN_BADGE}
-          wrap={fieldStep()}
+          // A plain group, not a Field: checkboxes inside a Field take its
+          // ids, so they would all share one input id and label.
+          wrap={(body) => (
+            <Stack gap={2} role='group' aria-labelledby={pathogenHeadingId}>
+              {body}
+            </Stack>
+          )}
         >
-          <NativeSelect.Root>
-            <NativeSelect.Field disabled bg='white' borderColor='gray.300'>
-              <option>{pathogens.join(', ') || '—'}</option>
-            </NativeSelect.Field>
-            <NativeSelect.Indicator />
-          </NativeSelect.Root>
+          <Stack gap={1}>
+            {speciesViruses.map((virus) => (
+              <Checkbox.Root
+                key={virus}
+                size='sm'
+                colorPalette='blue'
+                checked={pathogens.includes(virus)}
+                onCheckedChange={() => togglePathogen(virus)}
+                disabled={isRunning}
+              >
+                <Checkbox.HiddenInput />
+                <Checkbox.Control />
+                <Checkbox.Label fontWeight='normal' fontStyle='italic'>
+                  {virus}
+                </Checkbox.Label>
+              </Checkbox.Root>
+            ))}
+            {!speciesViruses.length && <Text fontSize='sm'>—</Text>}
+          </Stack>
         </Step>
 
         <Step

@@ -15,9 +15,6 @@ const MIN_POINTS = 20;
 const JOB_SETTINGS = {
   pseudo_absence: { n_replicates: 2, min_distance_km: 0 },
   sdm: { models: ['rf', 'et'], cv: 2, feature_selection_mode: 'none' },
-  // Always run force of infection; the API fills in its inputs (params CSV,
-  // population rasters) from the deployment's defaults.
-  foi: { enabled: true },
   seed: 42,
 };
 
@@ -42,14 +39,21 @@ export const readPresence = async (file) => {
   if (fc.features.length < MIN_POINTS) {
     throw new Error(`Presence needs at least ${MIN_POINTS} points`);
   }
-  return { fc, pointCount: fc.features.length };
+  // The layer name (e.g. 'abrothrix_longipilis_(waterhouse_1837)_presence'),
+  // used to pre-select the species.
+  const layerName = fc.name || fc.features[0]?.properties?.name || null;
+  return { fc, pointCount: fc.features.length, layerName };
 };
 
-// Returns the new job's id.
+// Returns the new job's id. pathogens is the API's foi.pathogens
+// ([{ virus, prevalence, k_min, k_max }], see libs/foiParams); force of
+// infection runs for those, and is off when there are none. The API fills in
+// the population rasters from the deployment's defaults.
 export const submitJob = async ({
   species,
   scenario: scenarioKey,
   presence,
+  pathogens = [],
 }) => {
   const scenario = toScenario(scenarioKey);
   // The API always needs Current; the future scenarios are modelled against it.
@@ -62,6 +66,7 @@ export const submitJob = async ({
       presence,
       predictors: { scenarios },
       ...JOB_SETTINGS,
+      foi: pathogens.length ? { enabled: true, pathogens } : { enabled: false },
     },
   });
   return data.job_id;

@@ -10,6 +10,11 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  webpack: (config) => {
+    // CSV data files (src/config/foi_params.csv) import as their text.
+    config.module.rules.push({ test: /\.csv$/, type: 'asset/source' });
+    return config;
+  },
 };
 
 export default nextConfig;

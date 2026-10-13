@@ -45,6 +45,8 @@ export const useCustomJob = () => {
   const [showFoi, setShowFoi] = useState(true);
   // Points of the file picked in the upload modal, before it's submitted.
   const [previewFc, setPreviewFc] = useState(null);
+  // Its layer name, which may name the species.
+  const [previewName, setPreviewName] = useState(null);
   const previewFileRef = useRef(null);
 
   // Toast, then drop the job from the URL (replace: the link was bad).
@@ -144,10 +146,11 @@ export const useCustomJob = () => {
   }, [active, jobId, scenario, dropJob]);
 
   // Run Models hooks (RunModelsPanel's onUpload / onUploadSuccess / onFileChange).
-  const upload = async ({ species, scenario: timeFrame, file }) => {
+  const upload = async ({ species, pathogens, scenario: timeFrame, file }) => {
     const { fc, pointCount } = await readPresence(file);
     const newJobId = await submitJob({
       species,
+      pathogens,
       scenario: timeFrameKey(timeFrame),
       presence: fc,
     });
@@ -166,11 +169,20 @@ export const useCustomJob = () => {
     previewFileRef.current = file;
     if (!file) {
       setPreviewFc(null);
+      setPreviewName(null);
       return;
     }
     readPresence(file)
-      .then(({ fc }) => previewFileRef.current === file && setPreviewFc(fc))
-      .catch(() => previewFileRef.current === file && setPreviewFc(null));
+      .then(({ fc, layerName }) => {
+        if (previewFileRef.current !== file) return;
+        setPreviewFc(fc);
+        setPreviewName(layerName);
+      })
+      .catch(() => {
+        if (previewFileRef.current !== file) return;
+        setPreviewFc(null);
+        setPreviewName(null);
+      });
   };
 
   const clear = () =>
@@ -203,6 +215,7 @@ export const useCustomJob = () => {
     showFoi,
     setShowFoi,
     points: previewFc || (showPoints ? jobPresence : null),
+    previewName,
     hasPoints: Boolean(jobPresence),
     showPoints,
     setShowPoints,
