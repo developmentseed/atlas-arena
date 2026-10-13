@@ -92,6 +92,7 @@ const HotSpotLegend = ({ labels = [], value = {}, handleChange = null }) => {
         id='legend-hotspot-title'
         fontSize='xs'
         fontWeight={600}
+        lineHeight='shorter'
         color='base.600'
         textTransform='uppercase'
       >

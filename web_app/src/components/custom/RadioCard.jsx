@@ -1,11 +1,7 @@
-import { Box, useRadio } from '@chakra-ui/react';
+import { RadioGroup } from '@chakra-ui/react';
 
-const RadioCard = (props) => {
-  const { isFirst } = props;
-  const { getInputProps, getRadioProps } = useRadio(props);
-
-  const input = getInputProps();
-  const checkbox = getRadioProps();
+// A segmented-button style radio. Render inside a RadioGroup.Root.
+const RadioCard = ({ value, isFirst, children }) => {
   const customBorders = isFirst
     ? {
         borderLeftRadius: '4px',
@@ -16,14 +12,13 @@ const RadioCard = (props) => {
         borderRightRadius: '4px',
       };
   return (
-    <Box as='label' flex={isFirst ? 1 : null}>
-      <input {...input} />
-      <Box
-        {...checkbox}
+    <RadioGroup.Item value={value} flex={isFirst ? 1 : undefined}>
+      <RadioGroup.ItemHiddenInput />
+      <RadioGroup.ItemText
         {...customBorders}
+        w='full'
         cursor='pointer'
         borderWidth='1px'
-        boxShadow='none'
         borderColor='blue.700'
         color='blue.700'
         fontSize='xs'
@@ -36,9 +31,9 @@ const RadioCard = (props) => {
         }}
         p={2}
       >
-        {props.children}
-      </Box>
-    </Box>
+        {children}
+      </RadioGroup.ItemText>
+    </RadioGroup.Item>
   );
 };
 

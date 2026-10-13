@@ -12,7 +12,7 @@ import {
   VIRUS_TITLE,
   VIRUS_TEXT,
 } from '@/config/constants/constants.home';
-const InfoCard = ({ icon, title, text }) => {
+const InfoCard = ({ icon: IconSvg, title, text }) => {
   return (
     <Flex
       direction='column'
@@ -23,11 +23,18 @@ const InfoCard = ({ icon, title, text }) => {
       color='blue.900'
       w={{ base: '100%', md: '30%' }}
     >
-      <Icon as={icon} boxSize={16} mb={4} color='blue.900' aria-hidden='true' />
+      <Icon
+        as={IconSvg}
+        boxSize={16}
+        mb={4}
+        color='blue.900'
+        aria-hidden='true'
+      />
       <Heading
         as='h2'
         fontSize='lg'
         fontWeight='bold'
+        lineHeight='shorter'
         textTransform='uppercase'
         mb={2}
       >

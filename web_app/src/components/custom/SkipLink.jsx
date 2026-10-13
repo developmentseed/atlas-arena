@@ -9,7 +9,7 @@ const SkipLink = ({ href, children }) => {
       position='absolute'
       top={2}
       left={2}
-      zIndex='skipLink'
+      zIndex='skipNav'
       px={4}
       py={2}
       bg='white'

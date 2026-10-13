@@ -35,7 +35,7 @@ const Layout = ({ children }) => {
       direction='column'
       minH='100vh'
       h={isFullHeight ? '100vh' : undefined}
-      sx={
+      css={
         isFullHeight
           ? {
               '@supports (height: 100dvh)': {

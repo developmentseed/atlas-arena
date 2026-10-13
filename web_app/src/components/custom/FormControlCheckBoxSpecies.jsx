@@ -1,8 +1,9 @@
 import { ALL_VIRUS } from '@/config/constants/general';
-import { FormControl, Stack, Checkbox, Text } from '@chakra-ui/react';
+import { Box, Stack, Checkbox, Text } from '@chakra-ui/react';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
 import { useId } from 'react';
 
+// handleAction is called with the toggled option's key.
 const FormControlCheckBoxSpecies = ({
   label,
   options,
@@ -28,23 +29,26 @@ const FormControlCheckBoxSpecies = ({
     }
 
     return (
-      <Checkbox
-        isChecked={values.includes(item.name)}
-        onChange={handleAction}
+      <Checkbox.Root
         key={item.key}
-        id={item.key}
         size='sm'
-        isDisabled={isDisabled || isLocked || isDisabledTmp}
+        colorPalette='blue'
+        checked={values.includes(item.name)}
+        onCheckedChange={() => handleAction(item.key)}
+        disabled={isDisabled || isLocked || isDisabledTmp}
       >
-        {item.name}
-      </Checkbox>
+        <Checkbox.HiddenInput />
+        <Checkbox.Control />
+        <Checkbox.Label fontWeight='normal'>{item.name}</Checkbox.Label>
+      </Checkbox.Root>
     );
   });
 
+  // A plain group, not a Field: checkboxes inside a Field take its ids, so
+  // they would all share one input id and label.
   return (
-    <FormControl
+    <Box
       my={4}
-      isDisabled={isDisabled}
       role='group'
       aria-labelledby={headingId}
       aria-describedby={notice ? noticeId : undefined}
@@ -61,10 +65,10 @@ const FormControlCheckBoxSpecies = ({
           {notice}
         </Text>
       )}
-      <Stack pl={0} mt={1} spacing={1}>
+      <Stack pl={0} mt={1} gap={1}>
         {renderOptions}
       </Stack>
-    </FormControl>
+    </Box>
   );
 };
 export default FormControlCheckBoxSpecies;

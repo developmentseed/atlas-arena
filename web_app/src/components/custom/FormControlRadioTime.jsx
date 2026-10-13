@@ -1,10 +1,4 @@
-import {
-  FormControl,
-  Stack,
-  Radio,
-  RadioGroup,
-  Checkbox,
-} from '@chakra-ui/react';
+import { Box, Stack, RadioGroup, Checkbox } from '@chakra-ui/react';
 import { useId, useState } from 'react';
 import { DEFAULT_TIME } from '@/config/constants/general';
 import FormLabelFlex from '@/components/custom/FormLabelFlex';
@@ -33,14 +27,11 @@ const FormControlRadioTime = ({
     .filter((i) => !`${i.name}`.toLowerCase().includes('delta'))
     .map((item) => {
       return (
-        <Radio
-          isChecked={shownRadio === item.name}
-          key={item.key}
-          size='sm'
-          value={item.key}
-        >
-          {item.name}
-        </Radio>
+        <RadioGroup.Item key={item.key} value={item.key}>
+          <RadioGroup.ItemHiddenInput />
+          <RadioGroup.ItemIndicator />
+          <RadioGroup.ItemText>{item.name}</RadioGroup.ItemText>
+        </RadioGroup.Item>
       );
     });
   const deltaOptions = options
@@ -89,9 +80,10 @@ const FormControlRadioTime = ({
   };
 
   return (
-    <FormControl
+    // A plain group, not a Field: the Show Delta checkbox would take the
+    // Field's ids.
+    <Box
       my={4}
-      isDisabled={isDisabled}
       role='group'
       aria-labelledby={headingId}
       aria-describedby={isLocked ? describedBy : undefined}
@@ -103,27 +95,32 @@ const FormControlRadioTime = ({
         isDisabled={isDisabled}
         isGroup
       />
-      <RadioGroup
+      <RadioGroup.Root
         aria-labelledby={headingId}
+        size='sm'
+        colorPalette='blue'
         value={shownRadio}
-        onChange={handleChangeRadio}
-        isDisabled={isDisabled || isLocked}
+        onValueChange={(e) => handleChangeRadio(e.value)}
+        disabled={isDisabled || isLocked}
       >
-        <Stack pl={0} py={1} spacing={1}>
+        <Stack pl={0} py={1} gap={1}>
           {renderOptions}
         </Stack>
-      </RadioGroup>
-      <Stack pl={0} pt={2} spacing={1}>
-        <Checkbox
-          onChange={handleChangeCheck}
-          isChecked={selectCheck && !isLocked}
-          isDisabled={isLocked || selectRadio == DEFAULT_TIME}
+      </RadioGroup.Root>
+      <Stack pl={0} pt={2} gap={1}>
+        <Checkbox.Root
           size='sm'
+          colorPalette='blue'
+          checked={selectCheck && !isLocked}
+          onCheckedChange={handleChangeCheck}
+          disabled={isLocked || selectRadio == DEFAULT_TIME}
         >
-          Show Delta
-        </Checkbox>
+          <Checkbox.HiddenInput />
+          <Checkbox.Control />
+          <Checkbox.Label fontWeight='normal'>Show Delta</Checkbox.Label>
+        </Checkbox.Root>
       </Stack>
-    </FormControl>
+    </Box>
   );
 };
 export default FormControlRadioTime;

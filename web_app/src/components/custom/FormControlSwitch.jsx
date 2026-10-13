@@ -1,4 +1,4 @@
-import { FormControl, Switch, Text } from '@chakra-ui/react';
+import { Switch, Field } from '@chakra-ui/react';
 
 const FormControlSwitch = ({
   label,
@@ -7,21 +7,26 @@ const FormControlSwitch = ({
   isDisabled = false,
 }) => {
   return (
-    <FormControl py={2} isDisabled={isDisabled}>
-      {/* Label text is a child of the Switch so it lands inside the same
-          <label> as the input and becomes its accessible name. */}
-      <Switch
+    <Field.Root py={2} disabled={isDisabled}>
+      {/* Switch.Root is a <label> wrapping the input, so the label text
+          becomes the switch's accessible name. */}
+      <Switch.Root
         size='sm'
-        onChange={handleAction}
-        isChecked={value}
+        colorPalette='blue'
+        checked={value}
+        onCheckedChange={handleAction}
         display='flex'
         alignItems='center'
       >
-        <Text as='span' fontSize='xs' color='gray.700'>
+        <Switch.HiddenInput />
+        <Switch.Control>
+          <Switch.Thumb />
+        </Switch.Control>
+        <Switch.Label fontSize='xs' fontWeight='normal' color='gray.700'>
           {label}
-        </Text>
-      </Switch>
-    </FormControl>
+        </Switch.Label>
+      </Switch.Root>
+    </Field.Root>
   );
 };
 export default FormControlSwitch;

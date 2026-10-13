@@ -1,22 +1,11 @@
+import NextLink from 'next/link';
 import React from 'react';
-import {
-  Tabs,
-  TabList,
-  TabPanels,
-  Tab,
-  TabPanel,
-  Card,
-  CardHeader,
-  Box,
-  SimpleGrid,
-  Text,
-} from '@chakra-ui/react';
-import { Link as NextLink } from '@chakra-ui/next-js';
+import { Tabs, Card, Box, SimpleGrid, Text, Link } from '@chakra-ui/react';
 
 const CustomCard = ({ title = '', subTitle = '', href = '' }) => {
   return (
-    <Card variant='withImageHeader' size='md'>
-      <CardHeader>
+    <Card.Root variant='withImageHeader' size='md'>
+      <Card.Header>
         <Box
           position='absolute'
           bottom='0'
@@ -27,20 +16,15 @@ const CustomCard = ({ title = '', subTitle = '', href = '' }) => {
           color='white'
           p={2}
         >
-          <NextLink
-            fontSize='md'
-            href={`/explore`}
-            color='blue.900'
-            fontWeight={700}
-          >
-            {title}
-          </NextLink>
+          <Link fontSize='md' color='blue.900' fontWeight={700} asChild>
+            <NextLink href={`/explore`}>{title}</NextLink>
+          </Link>
           <Text fontSize='md' color='blue.900'>
             {subTitle}
           </Text>
         </Box>
-      </CardHeader>
-    </Card>
+      </Card.Header>
+    </Card.Root>
   );
 };
 
@@ -61,32 +45,22 @@ const VRTabs = ({ virus = [], species = [] }) => {
     ));
 
   return (
-    <Tabs variant='unstyled'>
-      <TabList justifyContent='center'>
-        <Tab>VIRUSES</Tab>
-        <Tab>RESERVOIRS</Tab>
-      </TabList>
-      <TabPanels>
-        <TabPanel>
-          <SimpleGrid
-            columns={{ base: 1, sm: 2, md: 3, lg: 3 }}
-            spacing={4}
-            px={0}
-          >
-            {renderViruses}
-          </SimpleGrid>
-        </TabPanel>
-        <TabPanel>
-          <SimpleGrid
-            columns={{ base: 1, sm: 2, md: 3, lg: 3 }}
-            spacing={4}
-            px={0}
-          >
-            {renderSpecies}
-          </SimpleGrid>
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
+    <Tabs.Root unstyled defaultValue='viruses'>
+      <Tabs.List justifyContent='center'>
+        <Tabs.Trigger value='viruses'>VIRUSES</Tabs.Trigger>
+        <Tabs.Trigger value='reservoirs'>RESERVOIRS</Tabs.Trigger>
+      </Tabs.List>
+      <Tabs.Content value='viruses'>
+        <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 3 }} gap={4} px={0}>
+          {renderViruses}
+        </SimpleGrid>
+      </Tabs.Content>
+      <Tabs.Content value='reservoirs'>
+        <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 3 }} gap={4} px={0}>
+          {renderSpecies}
+        </SimpleGrid>
+      </Tabs.Content>
+    </Tabs.Root>
   );
 };
 

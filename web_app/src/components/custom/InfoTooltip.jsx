@@ -1,12 +1,4 @@
-import {
-  Icon,
-  IconButton,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverBody,
-} from '@chakra-ui/react';
+import { IconButton, Popover } from '@chakra-ui/react';
 import { LuInfo } from 'react-icons/lu';
 import {
   INFO_BUTTON_LABEL,
@@ -18,34 +10,44 @@ import {
 const InfoTooltip = ({ label = '', name = '' }) => {
   if (!label) return null;
   return (
-    <Popover placement='right' isLazy>
-      <PopoverTrigger>
+    <Popover.Root lazyMount positioning={{ placement: 'right' }}>
+      <Popover.Trigger asChild>
         <IconButton
           aria-label={INFO_BUTTON_LABEL(name)}
-          icon={<Icon as={LuInfo} boxSize={4} />}
           variant='ghost'
-          size='xs'
+          size='2xs'
           minW={6}
           h={6}
           ml={2}
           color='gray.600'
           _hover={{ color: 'blue.900', bg: 'blackAlpha.100' }}
-        />
-      </PopoverTrigger>
-      <PopoverContent
-        aria-label={INFO_POPOVER_LABEL(name)}
-        w='auto'
-        maxW='xs'
-        bg='gray.700'
-        color='white'
-        borderColor='gray.700'
-      >
-        <PopoverArrow bg='gray.700' />
-        <PopoverBody fontSize='sm' textTransform='none' fontWeight={400}>
-          {label}
-        </PopoverBody>
-      </PopoverContent>
-    </Popover>
+        >
+          <LuInfo />
+        </IconButton>
+      </Popover.Trigger>
+      <Popover.Positioner>
+        <Popover.Content
+          aria-label={INFO_POPOVER_LABEL(name)}
+          w='auto'
+          maxW='xs'
+          color='white'
+          borderColor='gray.700'
+          css={{ '--popover-bg': '{colors.gray.700}' }}
+        >
+          <Popover.Arrow>
+            <Popover.ArrowTip />
+          </Popover.Arrow>
+          <Popover.Body
+            p={3}
+            fontSize='sm'
+            textTransform='none'
+            fontWeight={400}
+          >
+            {label}
+          </Popover.Body>
+        </Popover.Content>
+      </Popover.Positioner>
+    </Popover.Root>
   );
 };
 

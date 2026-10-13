@@ -1,7 +1,6 @@
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-import { ChakraProvider } from '@chakra-ui/react';
-import theme from '@/config/theme';
+import { Provider } from '@/components/ui/provider';
 import Layout from '@/components/layout';
 import { AppWrapper } from '@/store/context';
 import { AuthProvider } from '@/store/auth';
@@ -16,7 +15,7 @@ import { FontCss } from '@/config/fonts';
 
 export default function MyApp({ Component, pageProps }) {
   return (
-    <ChakraProvider theme={theme}>
+    <Provider>
       <FontCss />
       <Head>
         <title key='title'>{PAGE_TITLE}</title>
@@ -35,6 +34,6 @@ export default function MyApp({ Component, pageProps }) {
           </Layout>
         </AppWrapper>
       </AuthProvider>
-    </ChakraProvider>
+    </Provider>
   );
 }

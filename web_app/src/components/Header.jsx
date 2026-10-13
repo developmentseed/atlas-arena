@@ -1,17 +1,17 @@
+import NextLink from 'next/link';
 import {
   Box,
   Flex,
   HStack,
   IconButton,
   Image,
-  useDisclosure,
-  Text,
+  Link,
   Stack,
+  Text,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { LuMenu, LuX } from 'react-icons/lu';
-import { Icon } from '@chakra-ui/react';
 import { useEffect, useRef } from 'react';
-import { Link as NextLink } from '@chakra-ui/next-js';
 import AALogo from '/public/assets/img/AALogo.svg';
 import NavLink from '@/components/custom/NavLink';
 import AuthButton from '@/components/AuthButton';
@@ -23,7 +23,7 @@ import {
 } from '@/config/constants/general';
 
 const Header = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const { open, onToggle } = useDisclosure();
   const headerRef = useRef(null);
 
   // Publish the real header height as --header-h for elements that sit
@@ -48,65 +48,63 @@ const Header = () => {
       ref={headerRef}
       py={2}
       px={[4, null, 6]}
-      borderBottom={'1px'}
+      borderBottom='1px solid'
       borderBottomColor='gray.100'
       boxShadow='sm'
     >
       <Flex alignItems={'center'} justifyContent={'space-between'}>
         <Box>
-          <NextLink
+          <Link
             display='flex'
             alignItems='center'
-            href={'/'}
             _hover={{
               textDecoration: 'none',
             }}
+            asChild
           >
-            <Image
-              src={AALogo.src}
-              alt=''
-              height='48px'
-              objectFit='cover'
-              m='-4'
-              pt='2'
-            />
-            <Text
-              fontSize='md'
-              ml='-1'
-              color='blue.800'
-              fontWeight={600}
-              lineHeight='21px'
-              letterSpacing={0.5}
-              textTransform='uppercase'
-            >
-              {PAGE_TITLE}
-            </Text>
-          </NextLink>
+            <NextLink href={'/'}>
+              <Image
+                src={AALogo.src}
+                alt=''
+                height='48px'
+                objectFit='cover'
+                m='-4'
+                pt='2'
+              />
+              <Text
+                fontSize='md'
+                ml='-1'
+                color='blue.800'
+                fontWeight={600}
+                lineHeight='21px'
+                letterSpacing={0.5}
+                textTransform='uppercase'
+              >
+                {PAGE_TITLE}
+              </Text>
+            </NextLink>
+          </Link>
         </Box>
-        <HStack
-          as={'nav'}
-          spacing={4}
-          py='2'
-          display={{ base: 'none', md: 'flex' }}
-        >
+        <HStack as='nav' gap={4} py='2' display={{ base: 'none', md: 'flex' }}>
           {LINK_HEADER.map((item) => (
             <NavLink key={item.text} {...item} />
           ))}
           <AuthButton />
         </HStack>
         <IconButton
-          size={'sm'}
-          icon={<Icon as={isOpen ? LuX : LuMenu} />}
-          aria-label={isOpen ? MENU_CLOSE : MENU_OPEN}
-          aria-expanded={isOpen}
+          size='sm'
+          aria-label={open ? MENU_CLOSE : MENU_OPEN}
+          aria-expanded={open}
           aria-controls='mobile-nav'
-          colorScheme='blue'
+          colorPalette='blue'
           display={{ md: 'none' }}
           variant='ghost'
-          onClick={isOpen ? onClose : onOpen}
-        />
+          onClick={onToggle}
+        >
+          {open ? <LuX /> : <LuMenu />}
+        </IconButton>
       </Flex>
-      {isOpen ? (
+      {open ? (
         <Box
           display={{ md: 'none' }}
           zIndex={100}
@@ -114,7 +112,7 @@ const Header = () => {
           mt={6}
           bg='white'
         >
-          <Stack as={'nav'} id='mobile-nav' spacing={4}>
+          <Stack as='nav' id='mobile-nav' gap={4}>
             {LINK_HEADER.map((item) => (
               <NavLink key={item.text} {...item} />
             ))}
