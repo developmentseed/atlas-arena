@@ -40,31 +40,52 @@ export const LEGEND_HOTSPOT_DESC =
 export const UNIT_SDM = 'probability';
 export const UNIT_DELTA = 'change';
 
-// UPLOAD MODAL
-export const UPLOAD_BUTTON = 'Upload presence data';
-export const CLEAR_CUSTOM_DATA_BUTTON = 'Clear custom data';
+// SIDEBAR TABS
+export const TAB_EXPLORE = 'Explore Models';
+export const TAB_RUN = 'Run Models';
+export const TAB_RUN_SIGNED_OUT = 'Log in to run custom models';
+
+// RUN MODELS (custom data upload and model run)
 export const CUSTOM_DATA_NOTICE = (species = '') =>
   `Results for ${species} are based on your uploaded data`;
-export const UPLOAD_TITLE = 'Upload species presence data';
-export const UPLOAD_DESCRIPTION =
-  'Upload custom data to run AtlasArena models for your data. Custom data replaces GBIF presence data.';
-export const UPLOAD_SCENARIO_LABEL = 'Scenario';
-export const UPLOAD_SPECIES_LABEL = 'Species';
-export const UPLOAD_DROPZONE_TEXT =
-  'Drop a GeoJSON file here, or click to upload';
+export const RUN_DESCRIPTION =
+  "Upload presence points for one species. Points are linked to known zoonotic hantaviruses and arenaviruses to generate species distribution models (SDMs) and force-of-infection (FOI) hazard layers.";
+export const RUN_STEP_UPLOAD = 'Upload presence data';
+export const RUN_SINGLE_SPECIES = 'Please upload a single species only.';
+export const RUN_STEP_SPECIES = 'Species';
+export const RUN_STEP_PATHOGEN = 'Pathogen association';
+export const RUN_PATHOGEN_BADGE = 'Automatic';
+export const RUN_STEP_MODEL = 'Model';
+export const RUN_SUBMIT = 'Run Model';
+export const RUN_IN_PROGRESS = 'Running model…';
+export const RUN_SERVER_NOTICE =
+  'Model inferencing runs on the server. You can close your browser or navigate away from this tab.';
+export const UPLOAD_DROPZONE_TEXT = 'Drag & drop a GeoJSON file here';
+export const UPLOAD_DROPZONE_BROWSE = 'or browse files';
 export const UPLOAD_DROPZONE_HINT =
-  'Point features with longitude/latitude coordinates (.geojson or .json)';
+  'Single species · [lon, lat] points · EPSG:4326';
+export const UPLOAD_DROPZONE_LABEL = `Upload presence data: ${UPLOAD_DROPZONE_TEXT} ${UPLOAD_DROPZONE_BROWSE}`;
+export const UPLOAD_FILE_DETAILS = (count) =>
+  count == null
+    ? 'EPSG:4326'
+    : `${count.toLocaleString('en-US')} points · EPSG:4326`;
+export const UPLOAD_REMOVE_FILE = 'Remove file';
 export const UPLOAD_ACCEPT = '.geojson,.json,application/geo+json';
-export const UPLOAD_CANCEL = 'Cancel';
-export const UPLOAD_SUBMIT = 'Upload';
-export const UPLOAD_IN_PROGRESS = 'Uploading';
-export const UPLOAD_SUCCESS_TITLE = 'Upload successful';
-export const UPLOAD_SUCCESS_TEXT = (count = 0) =>
-  `${count.toLocaleString('en-US')} points uploaded`;
-export const UPLOAD_DONE = 'Done';
+export const UPLOAD_IN_PROGRESS = 'Uploading presence data';
 export const UPLOAD_ERROR_TITLE = 'Upload failed';
 export const UPLOAD_ERROR_TEXT = 'We couldn’t process this file.';
-export const UPLOAD_RETRY = 'Choose a different file';
+export const MAP_POINTS_EMPTY =
+  'Your uploaded presence points will appear here';
+export const MAP_POINTS_LOADED = (count = 0) =>
+  `${count.toLocaleString('en-US')} presence points loaded`;
+// TODO: Add "Switch climate scenarios to see projected change." once a run can
+// show more than the scenario it was submitted for.
+export const RESULTS_DESCRIPTION = 'Results for the data you uploaded.';
+export const RESULTS_SPECIES_LABEL = 'Uploaded species';
+export const RESULTS_POINTS = (count = 0) =>
+  `${count.toLocaleString('en-US')} presence points`;
+export const MAP_LAYERS_LABEL = 'Map layers';
+export const UPLOAD_NEW_DATASET = 'Upload new dataset';
 // CUSTOM JOB STATUS (sidebar, while custom data is loaded)
 export const JOB_STATUS_TEXT = {
   LOADING: 'Loading model run',
@@ -72,8 +93,8 @@ export const JOB_STATUS_TEXT = {
   RUNNING: 'Model running: this can take a few minutes',
   SUCCEEDED: 'Results ready',
 };
-export const SHOW_POINTS_LABEL = 'Show uploaded points';
-export const SHOW_FOI_LABEL = 'Show force of infection';
+export const SHOW_POINTS_LABEL = 'Show uploaded presence points';
+export const SHOW_FOI_LABEL = 'Show Force of Infection';
 export const LEGEND_FOI_TITLE = 'Force of infection';
 export const LEGEND_FOI_TICKS = ['0', '0.025', '0.05'];
 export const SIGN_IN_TO_VIEW_JOB = 'Sign in to view this model run';

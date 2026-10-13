@@ -1,9 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Flex, Box } from '@chakra-ui/react';
+import { Flex, Box, HStack, Icon, Text } from '@chakra-ui/react';
+import { LuFile, LuUpload } from 'react-icons/lu';
 import Map from 'react-map-gl/maplibre';
 import { useAppContext } from '@/store/context';
 import { dynamicFilter, getUniqueCombinations, sortList } from '@/utils/utils';
-import Sidebar from '@/components/explore/Sidebar';
+import Sidebar, { SIDEBAR_TABS } from '@/components/explore/Sidebar';
 import axios from 'axios';
 import pako from 'pako';
 import SDMLegend from '@/components/explore/SDMLegend';
@@ -28,7 +29,10 @@ import { FOI_RANGE } from '@/libs/catalog';
 import {
   LEGEND_FOI_TITLE,
   LEGEND_FOI_TICKS,
+  MAP_POINTS_EMPTY,
+  MAP_POINTS_LOADED,
 } from '@/config/constants/constants.explore';
+import { useAuth } from '@/store/auth';
 import PageTitle from '@/components/custom/PageTitle';
 import { buildPageTitle } from '@/config/constants/general';
 import { MAP_REGION_LABEL } from '@/config/constants/constants.explore';
@@ -69,6 +73,19 @@ const Explore = ({ mddata }) => {
 
   const customJob = useCustomJob();
   const { customData } = customJob;
+  const { status: authStatus } = useAuth();
+
+  // Sidebar tab. A loaded model run opens Run Models; signing out leaves it.
+  const [sidebarTab, setSidebarTab] = useState(SIDEBAR_TABS.EXPLORE);
+  const customJobId = customData ? customData.jobId : null;
+  useEffect(() => {
+    if (customJobId) setSidebarTab(SIDEBAR_TABS.RUN);
+  }, [customJobId]);
+  useEffect(() => {
+    if (authStatus !== 'signedIn') setSidebarTab(SIDEBAR_TABS.EXPLORE);
+  }, [authStatus]);
+  const pointCount = customJob.points ? customJob.points.features.length : null;
+  const showPointsHint = sidebarTab === SIDEBAR_TABS.RUN && !customData;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -254,7 +271,10 @@ const Explore = ({ mddata }) => {
       <Sidebar
         handleFilterTilesId={handleFilterTilesId}
         filterTilesId={filterTilesId}
+        tab={sidebarTab}
+        onTabChange={setSidebarTab}
         customData={customData}
+        previewCount={pointCount}
         onUpload={customJob.upload}
         onUploadSuccess={customJob.onUploadSuccess}
         onFileChange={customJob.previewFile}
@@ -305,6 +325,36 @@ const Explore = ({ mddata }) => {
             </Map>
           </Box>
         </Box>
+        {showPointsHint && (
+          <HStack
+            position='absolute'
+            top={4}
+            left='50%'
+            transform='translateX(-50%)'
+            zIndex={10}
+            gap={2}
+            px={4}
+            py={2}
+            bg='white'
+            borderRadius='full'
+            boxShadow='md'
+            fontSize='sm'
+            fontWeight={600}
+            color='gray.800'
+            whiteSpace='nowrap'
+            role='status'
+          >
+            <Icon
+              as={pointCount ? LuFile : LuUpload}
+              boxSize={4}
+              color='blue.700'
+              aria-hidden='true'
+            />
+            <Text>
+              {pointCount ? MAP_POINTS_LOADED(pointCount) : MAP_POINTS_EMPTY}
+            </Text>
+          </HStack>
+        )}
         <Box
           position='absolute'
           maxH='calc(100% - 32px)'
