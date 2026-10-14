@@ -24,13 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { LuCheck, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
-import {
-  FOI_SPECIES,
-  foiPathogens,
-  matchSpecies,
-  speciesKey,
-  virusesForSpecies,
-} from '@/libs/foiParams';
+import { speciesKey, useFoiParams } from '@/libs/foiParams';
 import { DEFAULT_TIME } from '@/config/constants/general';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
@@ -42,6 +36,9 @@ import {
   RUN_STEP_SPECIES,
   RUN_STEP_PATHOGEN,
   RUN_PATHOGEN_BADGE,
+  RUN_SPECIES_LOADING,
+  RUN_SPECIES_ERROR_TITLE,
+  RUN_SPECIES_ERROR_TEXT,
   RUN_STEP_MODEL,
   RUN_SUBMIT,
   RUN_IN_PROGRESS,
@@ -125,9 +122,6 @@ const fieldStep =
     </Field.Root>
   );
 
-const speciesName = (key) =>
-  (FOI_SPECIES.find((item) => item.key === key) || {}).name || key;
-
 // The "Run Models" tab: upload presence data and submit a model run, follow
 // its progress, then show the result's controls. Uses the custom job hooks
 // from useCustomJob (via Sidebar); this component only adds form state.
@@ -150,6 +144,8 @@ const RunModelsPanel = ({
 }) => {
   const { allModels, allTimeFrame } = useAppContext();
   const pathogenHeadingId = useId();
+  const { foiParams, error: foiParamsError } = useFoiParams();
+  const allSpecies = foiParams ? foiParams.species : [];
 
   const [species, setSpecies] = useState('');
   // The checked pathogens, or null for all of the species' viruses.
@@ -163,6 +159,8 @@ const RunModelsPanel = ({
   const isUploading = status === STATUS.UPLOADING;
   const isSucceeded = customData && customData.status === 'SUCCEEDED';
   const isRunning = isUploading || (customData && !isSucceeded);
+  // The species list (FOI params CSV) is fetched; the form waits for it.
+  const isFormDisabled = isRunning || !foiParams;
 
   const fileUpload = useFileUpload({
     maxFiles: 1,
@@ -180,10 +178,12 @@ const RunModelsPanel = ({
   const selectedSpecies =
     species ||
     speciesKey(customData && customData.species) ||
-    (FOI_SPECIES[0] && FOI_SPECIES[0].key) ||
+    (allSpecies[0] && allSpecies[0].key) ||
     '';
   const selectedModel = model || (allModels[0] && allModels[0].key) || '';
-  const speciesViruses = virusesForSpecies(selectedSpecies);
+  const speciesViruses = foiParams ? foiParams.virusesFor(selectedSpecies) : [];
+  const speciesName = (key) =>
+    (allSpecies.find((item) => item.key === key) || {}).name || key;
   const pathogens = checkedPathogens ?? speciesViruses;
 
   // A new species starts with all of its pathogens checked.
@@ -199,13 +199,14 @@ const RunModelsPanel = ({
         : speciesViruses.filter((v) => v === virus || pathogens.includes(v))
     );
 
-  // Pre-select the species a picked file's layer name refers to.
+  // Pre-select the species a picked file's layer name refers to (also once
+  // the species list arrives, if the file was picked first).
   useEffect(() => {
-    const key = matchSpecies(previewName);
+    const key = foiParams && foiParams.match(previewName);
     if (!key) return;
     setSpecies(key);
     setCheckedPathogens(null);
-  }, [previewName]);
+  }, [foiParams, previewName]);
 
   // After "Upload new dataset", the results are replaced by the form: move
   // focus to its first step so it isn't lost with the removed button.
@@ -217,13 +218,13 @@ const RunModelsPanel = ({
   }, [customData]);
 
   const handleRun = async () => {
-    if (!onUpload || !file) return;
+    if (!onUpload || !file || !foiParams) return;
     setStatus(STATUS.UPLOADING);
     try {
       const result = await onUpload({
         scenario: UPLOAD_SCENARIO,
         species: speciesName(selectedSpecies),
-        pathogens: foiPathogens(selectedSpecies, pathogens),
+        pathogens: foiParams.pathogens(selectedSpecies, pathogens),
         file,
       });
       const count = (result && result.pointCount) || 0;
@@ -462,13 +463,14 @@ const RunModelsPanel = ({
         >
           <NativeSelect.Root>
             <NativeSelect.Field
-              disabled={isRunning}
+              disabled={isFormDisabled}
               bg='white'
               borderColor='gray.300'
               value={selectedSpecies}
               onChange={(event) => selectSpecies(event.target.value)}
             >
-              {FOI_SPECIES.map((item) => (
+              {!foiParams && <option value=''>{RUN_SPECIES_LOADING}</option>}
+              {allSpecies.map((item) => (
                 <option key={item.key} value={item.key}>
                   {item.name}
                 </option>
@@ -542,6 +544,15 @@ const RunModelsPanel = ({
       </List.Root>
 
       <Stack gap={3} mt='auto' pt={4}>
+        {foiParamsError && (
+          <Alert.Root status='error' role='alert'>
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Title>{RUN_SPECIES_ERROR_TITLE}</Alert.Title>
+              <Alert.Description>{RUN_SPECIES_ERROR_TEXT}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        )}
         {status === STATUS.ERROR && (
           <Alert.Root status='error' role='alert'>
             <Alert.Indicator />
@@ -553,9 +564,9 @@ const RunModelsPanel = ({
         )}
         <Button
           size='lg'
-          colorPalette={file && !isRunning ? 'blue' : 'gray'}
-          variant={file && !isRunning ? 'solid' : 'subtle'}
-          disabled={!file || isRunning}
+          colorPalette={file && !isFormDisabled ? 'blue' : 'gray'}
+          variant={file && !isFormDisabled ? 'solid' : 'subtle'}
+          disabled={!file || isFormDisabled}
           onClick={handleRun}
         >
           {isRunning ? RUN_IN_PROGRESS : RUN_SUBMIT}
