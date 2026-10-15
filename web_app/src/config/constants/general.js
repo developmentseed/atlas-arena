@@ -185,8 +185,8 @@ export const DEFAULT_TIME = 'Current (year 1990-2010)';
 export const DEFAULT_MODEL = 'Combined';
 
 // DEFAULT LEGEND OPACITY
-export const DEFAULT_OPACITY_SINGLE = 100;
-export const DEFAULT_OPACITY_MULTIPLE = 50;
+export const DEFAULT_OPACITY_SINGLE = 50;
+export const DEFAULT_OPACITY_MULTIPLE = 25;
 
 // LEGEND LABEL
 export const DEFAULT_LEGEND_VALUE = ['0', '0.5', '1'];
