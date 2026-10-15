@@ -18,10 +18,18 @@ const JOB_SETTINGS = {
   seed: 42,
 };
 
-// Scenario key (catalog.json time_frames) -> API scenario.
+// Scenario key (catalog.json time_frames) -> API scenario. Delta keys show the
+// future scenario's difference from Current.
 const API_SCENARIOS = { current: 'Current', ssp2: 'SSP2', ssp5: 'SSP5' };
-export const isScenario = (key) => key in API_SCENARIOS;
-const toScenario = (key) => API_SCENARIOS[key] || API_SCENARIOS.current;
+const DELTA_SCENARIOS = { delta_ssp2: 'SSP2', delta_ssp5: 'SSP5' };
+export const SCENARIO_KEYS = [
+  ...Object.keys(API_SCENARIOS),
+  ...Object.keys(DELTA_SCENARIOS),
+];
+export const isScenario = (key) => SCENARIO_KEYS.includes(key);
+export const isDeltaScenario = (key) => key in DELTA_SCENARIOS;
+const toScenario = (key) =>
+  API_SCENARIOS[key] || DELTA_SCENARIOS[key] || API_SCENARIOS.current;
 
 // Job ids are 12 hex characters (atlasarena.config).
 export const isJobId = (id) => /^[0-9a-f]{12}$/.test(id || '');
@@ -48,23 +56,15 @@ export const readPresence = async (file) => {
 // Returns the new job's id. pathogens is the API's foi.pathogens
 // ([{ virus, prevalence, k_min, k_max }], see libs/foiParams); force of
 // infection runs for those, and is off when there are none. The API fills in
-// the population rasters from the deployment's defaults.
-export const submitJob = async ({
-  species,
-  scenario: scenarioKey,
-  presence,
-  pathogens = [],
-}) => {
-  const scenario = toScenario(scenarioKey);
-  // The API always needs Current; the future scenarios are modelled against it.
-  const scenarios =
-    scenario === 'Current' ? ['Current'] : ['Current', scenario];
+// the population rasters from the deployment's defaults. Leaves out
+// predictors.scenarios: the API defaults to all of Current, SSP2 and SSP5,
+// which the scenario switcher flips between.
+export const submitJob = async ({ species, presence, pathogens = [] }) => {
   const { data } = await apiFetch('jobs', {
     method: 'POST',
     data: {
       species_name: species,
       presence,
-      predictors: { scenarios },
       ...JOB_SETTINGS,
       foi: pathogens.length ? { enabled: true, pathogens } : { enabled: false },
     },
@@ -80,18 +80,30 @@ export const getJob = async (jobId) => {
 
 // Probability raster for the timeframe: stems are <species_slug>_<Scenario>
 // (e.g. calomys_musculinus_SSP2), next to _diff_, _foi_ and _hotspots_ ones.
+// Delta keys pick <species_slug>_diff_<Scenario>_minus_current.
 export const pickRaster = (rasters, scenarioKey) => {
-  const suffix = `_${toScenario(scenarioKey)}`.toLowerCase();
-  const stem = Object.keys(rasters || {}).find(
-    (key) =>
-      key.toLowerCase().endsWith(suffix) && !/_(diff|foi|hotspots)_/i.test(key)
-  );
+  const scenario = toScenario(scenarioKey).toLowerCase();
+  const stem = Object.keys(rasters || {}).find((key) => {
+    const lower = key.toLowerCase();
+    if (isDeltaScenario(scenarioKey)) {
+      return lower.endsWith(`_diff_${scenario}_minus_current`);
+    }
+    return (
+      lower.endsWith(`_${scenario}`) && !/_(diff|foi|hotspots)_/.test(lower)
+    );
+  });
   return stem ? rasters[stem] : null;
 };
+
+// The scenario keys a job has a probability raster for. Jobs submitted before
+// every run covered all three scenarios may only have some.
+export const jobScenarios = (rasters) =>
+  SCENARIO_KEYS.filter((key) => pickRaster(rasters, key));
 
 // FOI outputs for the timeframe, one entry per virus the species has FOI
 // parameters for: stems are <species_slug>__<virus_slug>_foi_<scenario> and
 // ..._hotspots_<scenario>. Returns [{ virusSlug, foi, hotspots }] (URLs).
+// There are no FOI differences: delta keys get their future scenario's.
 export const foiRasters = (rasters, scenarioKey) => {
   const scenario = toScenario(scenarioKey).toLowerCase();
   const pattern = new RegExp(`^(.*)__(.+?)_(foi|hotspots)_${scenario}$`);

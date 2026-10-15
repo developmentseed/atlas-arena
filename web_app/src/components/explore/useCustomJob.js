@@ -9,8 +9,10 @@ import {
   fetchPresence,
   foiRasters,
   getJob,
+  isDeltaScenario,
   isJobId,
   isScenario,
+  jobScenarios,
   pickRaster,
   readPresence,
   submitJob,
@@ -26,13 +28,16 @@ const SIGN_IN_TOAST_ID = 'sign-in-to-view-job';
 // The custom-data model run shown on Explore. The URL fragment is the source
 // of truth (#job=<id>&scenario=<time_frames key>): uploading pushes it,
 // clearing removes it, and loading, reloading, shared links and Back/Forward
-// all just follow it. Jobs need a signed-in user to read.
+// all just follow it. Every job models all scenarios, so switching scenario
+// only re-picks rasters from the loaded job. Jobs need a signed-in user to read.
 export const useCustomJob = () => {
   const { job: jobParam, scenario: scenarioParam } = useHashParams();
   const { status: authStatus, enabled: authEnabled } = useAuth();
 
   const jobId = jobParam || null;
-  const scenario = isScenario(scenarioParam) ? scenarioParam : 'current';
+  const requestedScenario = isScenario(scenarioParam)
+    ? scenarioParam
+    : 'current';
   const active = Boolean(jobId) && authStatus === 'signedIn';
 
   // Latest GET jobs/{id} response for jobId; null until the first arrives.
@@ -126,12 +131,9 @@ export const useCustomJob = () => {
         dropJob(JOB_FAILED_TITLE, data.error || `Job status ${data.status}`);
       } else if (
         data.status === 'SUCCEEDED' &&
-        !pickRaster(data.rasters, scenario)
+        !pickRaster(data.rasters, 'current')
       ) {
-        dropJob(
-          JOB_FAILED_TITLE,
-          'The model run produced no raster for this scenario'
-        );
+        dropJob(JOB_FAILED_TITLE, 'The model run produced no rasters');
       } else {
         setJob(data);
       }
@@ -143,27 +145,27 @@ export const useCustomJob = () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [active, jobId, scenario, dropJob]);
+  }, [active, jobId, dropJob]);
 
   // Run Models hooks (RunModelsPanel's onUpload / onUploadSuccess / onFileChange).
-  const upload = async ({ species, pathogens, scenario: timeFrame, file }) => {
+  const upload = async ({ species, pathogens, file }) => {
     const { fc, pointCount } = await readPresence(file);
-    const newJobId = await submitJob({
-      species,
-      pathogens,
-      scenario: timeFrameKey(timeFrame),
-      presence: fc,
-    });
+    const newJobId = await submitJob({ species, pathogens, presence: fc });
     return { pointCount, jobId: newJobId, fc };
   };
 
-  const onUploadSuccess = ({ jobId: newJobId, fc, scenario: timeFrame }) => {
+  // Keeps the scenario picked before the upload, if any.
+  const onUploadSuccess = ({ jobId: newJobId, fc }) => {
     setPresence({ jobId: newJobId, fc });
     setHashParams(
-      { job: newJobId, scenario: timeFrameKey(timeFrame) },
+      { job: newJobId, scenario: requestedScenario },
       { push: true }
     );
   };
+
+  // Replaces rather than pushes: switching scenarios isn't Back/Forward history.
+  const setScenario = (timeFrame) =>
+    setHashParams({ scenario: timeFrameKey(timeFrame) });
 
   const previewFile = (file) => {
     previewFileRef.current = file;
@@ -189,19 +191,30 @@ export const useCustomJob = () => {
     setHashParams({ job: null, scenario: null }, { push: true });
 
   const succeeded = active && job?.status === 'SUCCEEDED';
+  // Scenarios the job has rasters for; empty until it has succeeded. A
+  // scenario the job lacks (older jobs, edited links) shows Current instead.
+  const availableScenarios = succeeded ? jobScenarios(job.rasters) : [];
+  const scenario =
+    !succeeded || availableScenarios.includes(requestedScenario)
+      ? requestedScenario
+      : 'current';
   const jobPresence = active && presence?.jobId === jobId ? presence.fc : null;
 
   return {
-    // { jobId, scenario (display name), species, status } while a job is loaded.
+    // { jobId, scenario and availableScenarios (display names), species,
+    // status } while a job is loaded.
     customData: active
       ? {
           jobId,
           scenario: timeFrameName(scenario),
+          availableScenarios: availableScenarios.map(timeFrameName),
           species: job?.species_name,
           status: job ? job.status : 'LOADING',
         }
       : null,
     rasterUrl: succeeded ? pickRaster(job.rasters, scenario) : null,
+    isDelta: isDeltaScenario(scenario),
+    setScenario,
     // [{ virus (catalog name), color, foiUrl, hotspotUrl }] once it succeeded;
     // empty when the species has no FOI parameters.
     foiLayers: succeeded

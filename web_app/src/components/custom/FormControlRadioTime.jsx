@@ -9,35 +9,57 @@ const FormControlRadioTime = ({
   handleAction,
   info = '',
   isDisabled = false,
-  isLocked = false,
-  lockedValue = '',
+  // Controlled by a model run: value is the shown time frame (possibly a delta
+  // one), and availableValues, when non-empty, the ones the run has.
+  value,
+  availableValues = [],
   describedBy,
 }) => {
-  const [selectRadio, setSelectRadio] = useState(DEFAULT_TIME);
-  const [selectCheck, setSelectCheck] = useState(false);
+  const [localRadio, setLocalRadio] = useState(DEFAULT_TIME);
+  const [localCheck, setLocalCheck] = useState(false);
   const headingId = useId();
 
   if (!options.length) return null;
 
-  // while locked, show the scenario the locked results were produced for
-  const shownRadio = isLocked && lockedValue ? lockedValue : selectRadio;
+  const isDeltaName = (name) => `${name}`.toLowerCase().includes('delta');
+  const radioOptions = options.filter((i) => !isDeltaName(i.name));
+  const deltaOptions = options
+    .filter((i) => isDeltaName(i.name))
+    .map((item) => item.name);
+  // The delta time frame for a scenario, e.g. 'SSP 2 (...)' -> 'Delta SSP 2 - current'.
+  const deltaFor = (radioVal) => {
+    const typeSSP = `${radioVal}`.substring(0, 6).trim().toLowerCase();
+    return deltaOptions.find((item) => item.toLowerCase().includes(typeSSP));
+  };
+  const isControlled = value !== undefined;
+  const isAvailable = (val) =>
+    !isControlled || !availableValues.length || availableValues.includes(val);
+
+  const valueIsDelta = isControlled && deltaOptions.includes(value);
+  const selectRadio = !isControlled
+    ? localRadio
+    : valueIsDelta
+      ? radioOptions.find((i) => deltaFor(i.name) === value)?.name ||
+        DEFAULT_TIME
+      : value;
+  const selectCheck = isControlled ? valueIsDelta : localCheck;
+  const deltaAvailable =
+    selectRadio !== DEFAULT_TIME && isAvailable(deltaFor(selectRadio));
 
   // filter
-  const renderOptions = options
-    .filter((i) => !`${i.name}`.toLowerCase().includes('delta'))
-    .map((item) => {
-      return (
-        <RadioGroup.Item key={item.key} value={item.key}>
-          <RadioGroup.ItemHiddenInput />
-          <RadioGroup.ItemIndicator />
-          <RadioGroup.ItemText>{item.name}</RadioGroup.ItemText>
-        </RadioGroup.Item>
-      );
-    });
-  const deltaOptions = options
-    .filter((i) => `${i.name}`.toLowerCase().includes('delta'))
-    .map((item) => item.name);
-
+  const renderOptions = radioOptions.map((item) => {
+    return (
+      <RadioGroup.Item
+        key={item.key}
+        value={item.key}
+        disabled={!isAvailable(item.name)}
+      >
+        <RadioGroup.ItemHiddenInput />
+        <RadioGroup.ItemIndicator />
+        <RadioGroup.ItemText>{item.name}</RadioGroup.ItemText>
+      </RadioGroup.Item>
+    );
+  });
   // action
   const sendAction = (radioVal = '', checkVal = false) => {
     const newVal = [];
@@ -45,12 +67,8 @@ const FormControlRadioTime = ({
     if (!radioVal || radioVal === DEFAULT_TIME) {
       newVal.push(DEFAULT_TIME);
     } else {
-      const typeSSP = radioVal.substring(0, 6).trim().toLowerCase();
-
       if (checkVal) {
-        const filteredOption = deltaOptions.find((item) =>
-          item.toLowerCase().includes(typeSSP)
-        );
+        const filteredOption = deltaFor(radioVal);
         if (filteredOption) {
           newVal.push(filteredOption);
         }
@@ -63,19 +81,19 @@ const FormControlRadioTime = ({
   };
 
   const handleChangeRadio = (val) => {
-    if (val == DEFAULT_TIME) {
-      setSelectRadio(val);
-      setSelectCheck(false);
-      sendAction(val, false);
-    } else {
-      setSelectRadio(val);
-      sendAction(val, selectCheck);
+    // Keep showing the delta only if the run has it for the new scenario.
+    const check =
+      val != DEFAULT_TIME && selectCheck && isAvailable(deltaFor(val));
+    if (!isControlled) {
+      setLocalRadio(val);
+      setLocalCheck(check);
     }
+    sendAction(val, check);
   };
   const handleChangeCheck = () => {
     let newValue = !selectCheck;
 
-    setSelectCheck(newValue);
+    if (!isControlled) setLocalCheck(newValue);
     sendAction(selectRadio, newValue);
   };
 
@@ -86,7 +104,7 @@ const FormControlRadioTime = ({
       my={4}
       role='group'
       aria-labelledby={headingId}
-      aria-describedby={isLocked ? describedBy : undefined}
+      aria-describedby={describedBy}
     >
       <FormLabelFlex
         id={headingId}
@@ -99,9 +117,9 @@ const FormControlRadioTime = ({
         aria-labelledby={headingId}
         size='sm'
         colorPalette='blue'
-        value={shownRadio}
+        value={selectRadio}
         onValueChange={(e) => handleChangeRadio(e.value)}
-        disabled={isDisabled || isLocked}
+        disabled={isDisabled}
       >
         <Stack pl={0} py={1} gap={1}>
           {renderOptions}
@@ -111,9 +129,9 @@ const FormControlRadioTime = ({
         <Checkbox.Root
           size='sm'
           colorPalette='blue'
-          checked={selectCheck && !isLocked}
+          checked={selectCheck}
           onCheckedChange={handleChangeCheck}
-          disabled={isLocked || selectRadio == DEFAULT_TIME}
+          disabled={!deltaAvailable}
         >
           <Checkbox.HiddenInput />
           <Checkbox.Control />

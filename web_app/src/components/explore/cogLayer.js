@@ -112,8 +112,9 @@ const onTileUnload = (tile) => tile.content?.texture?.destroy();
 export const buildCogLayer = ({ item, opacity }) => {
   const [rangeMin, rangeMax] = item.range;
   // Like the Mapbox version, zero probability is transparent; ranges that go
-  // negative (differences) only hide nodata.
-  let minValue = rangeMin < 0 ? -3.0e38 : 0.000001;
+  // negative (differences) only hide nodata, which is NaN or out of range
+  // (model runs write -9999).
+  let minValue = rangeMin < 0 ? rangeMin - 0.000001 : 0.000001;
   let maxValue = 3.0e38;
   // A 0/1 mask (FOI hotspots): keep only 1s, dropping 0 and integer nodata,
   // drawn in the ramp's top colour.

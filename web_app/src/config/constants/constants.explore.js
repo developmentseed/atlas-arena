@@ -82,9 +82,8 @@ export const MAP_POINTS_EMPTY =
   'Your uploaded presence points will appear here';
 export const MAP_POINTS_LOADED = (count = 0) =>
   `${count.toLocaleString('en-US')} presence points loaded`;
-// TODO: Add "Switch climate scenarios to see projected change." once a run can
-// show more than the scenario it was submitted for.
-export const RESULTS_DESCRIPTION = 'Results for the data you uploaded.';
+export const RESULTS_DESCRIPTION =
+  'Results for the data you uploaded. Switch climate scenarios to see projected change.';
 export const RESULTS_SPECIES_LABEL = 'Uploaded species';
 export const RESULTS_POINTS = (count = 0) =>
   `${count.toLocaleString('en-US')} presence points`;

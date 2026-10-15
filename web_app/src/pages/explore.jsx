@@ -167,7 +167,7 @@ const Explore = ({ mddata }) => {
           {
             species: customData.species,
             url: customJob.rasterUrl,
-            range: [0, 1],
+            range: customJob.isDelta ? [-1, 1] : [0, 1],
             color: (
               raw_data.find((i) => i.species === customData.species) || {}
             ).color,
@@ -287,6 +287,7 @@ const Explore = ({ mddata }) => {
         hasFoi={customJob.foiLayers.length > 0}
         showFoi={customJob.showFoi}
         onToggleFoi={() => customJob.setShowFoi((show) => !show)}
+        onScenarioChange={customJob.setScenario}
       />
       <Box flex={1} minH={0} minW={0} position='relative'>
         <Box
@@ -372,7 +373,7 @@ const Explore = ({ mddata }) => {
           <SDMLegend
             labels={labelSDM}
             value={opacityFilter}
-            isDelta={!customData && hasDeltaValue}
+            isDelta={customData ? customJob.isDelta : hasDeltaValue}
             handleChange={handleChangeLayerStyle}
           />
           <SDMLegend
