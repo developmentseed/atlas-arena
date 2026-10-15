@@ -274,7 +274,7 @@ const RunModelsPanel = ({
   if (isSucceeded) {
     const count = previewCount ?? pointCount;
     return (
-      <Flex direction='column' flex={1} gap={4}>
+      <Flex direction='column' flex={1} gap={2}>
         <Flex
           direction='column'
           borderWidth='1px'
@@ -295,7 +295,12 @@ const RunModelsPanel = ({
           >
             {RESULTS_SPECIES_LABEL}
           </Text>
-          <Text fontSize='md' fontWeight={500} fontStyle='italic' color='blue.700'>
+          <Text
+            fontSize='md'
+            fontWeight={500}
+            fontStyle='italic'
+            color='blue.700'
+          >
             {customData.species}
           </Text>
           {count != null && (
@@ -351,7 +356,6 @@ const RunModelsPanel = ({
         )}
         <Button
           mt='auto'
-          size='lg'
           variant='solid'
           colorPalette='blue'
           loading={downloading}
@@ -361,7 +365,6 @@ const RunModelsPanel = ({
           {DOWNLOAD_RESULTS}
         </Button>
         <Button
-          size='lg'
           variant='outline'
           colorPalette='blue'
           borderColor='currentColor'
@@ -407,8 +410,8 @@ const RunModelsPanel = ({
             <FileUpload.Dropzone
               ref={dropzoneRef}
               minH='auto'
-              py={5}
-              px={4}
+              py={3}
+              px={2}
               gap={1}
               borderWidth='2px'
               borderStyle='dashed'
@@ -420,7 +423,7 @@ const RunModelsPanel = ({
             >
               <Icon
                 as={LuUpload}
-                boxSize={6}
+                boxSize={4}
                 color='blue.700'
                 aria-hidden='true'
               />
@@ -451,7 +454,7 @@ const RunModelsPanel = ({
                 borderColor='gray.300'
                 borderRadius='md'
                 p={2}
-                gap={3}
+                gap={2}
               >
                 <Circle size={7} bg='green.100' color='green.700'>
                   <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
@@ -575,7 +578,9 @@ const RunModelsPanel = ({
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Title>{RUN_SPECIES_ERROR_TITLE}</Alert.Title>
-              <Alert.Description>{RUN_SPECIES_ERROR_TEXT}</Alert.Description>
+              <Alert.Description fontSize='xs' lineHeight='shorter'>
+                {RUN_SPECIES_ERROR_TEXT}
+              </Alert.Description>
             </Alert.Content>
           </Alert.Root>
         )}
@@ -584,12 +589,13 @@ const RunModelsPanel = ({
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Title>{UPLOAD_ERROR_TITLE}</Alert.Title>
-              <Alert.Description>{UPLOAD_ERROR_TEXT}</Alert.Description>
+              <Alert.Description fontSize='xs' lineHeight='shorter'>
+                {UPLOAD_ERROR_TEXT}
+              </Alert.Description>
             </Alert.Content>
           </Alert.Root>
         )}
         <Button
-          size='lg'
           colorPalette={file && !isFormDisabled ? 'blue' : 'gray'}
           variant={file && !isFormDisabled ? 'solid' : 'subtle'}
           disabled={!file || isFormDisabled}
@@ -611,9 +617,7 @@ const RunModelsPanel = ({
             </Progress.Root>
             <HStack gap={2} mt={2} role='status'>
               <Spinner size='xs' color='blue.600' aria-hidden='true' />
-              <Text fontSize='xs'>
-                {statusText}
-              </Text>
+              <Text fontSize='xs'>{statusText}</Text>
             </HStack>
           </Box>
         )}
@@ -629,7 +633,7 @@ const RunModelsPanel = ({
         )}
         <Alert.Root status='info' variant='subtle' colorPalette='blue'>
           <Alert.Indicator />
-          <Alert.Description fontSize='sm'>
+          <Alert.Description fontSize='xs' lineHeight='shorter'>
             {RUN_SERVER_NOTICE}
           </Alert.Description>
         </Alert.Root>

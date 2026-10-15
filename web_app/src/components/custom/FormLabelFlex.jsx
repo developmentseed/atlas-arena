@@ -18,7 +18,7 @@ const FormLabelFlex = ({
 }) => {
   if (!label) return null;
   return (
-    <Flex justifyContent='space-between' alignItems='center' mb={2}>
+    <Flex justifyContent='space-between' alignItems='center'>
       <Heading
         as='h2'
         id={id}

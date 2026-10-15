@@ -363,13 +363,14 @@ const Sidebar = ({
           )}
           <Tabs.Indicator rounded='l2' />
         </Tabs.List>
-        <Tabs.Content value={SIDEBAR_TABS.EXPLORE}>
+        <Tabs.Content value={SIDEBAR_TABS.EXPLORE} pt={1}>
           <FormControlText label={SIDEBAR_TITLE} text={SIDEBAR_SUBTITLE} />
           {exploreControls}
         </Tabs.Content>
         <Tabs.Content
           value={SIDEBAR_TABS.RUN}
           flex={1}
+          pt={1}
           flexDirection='column'
           css={{ '&:not([hidden])': { display: 'flex' } }}
         >
@@ -479,7 +480,7 @@ const Sidebar = ({
         maxW='330px'
         bg={isCollapsed ? 'transparent' : 'secondary.50'}
         h='100%'
-        p={isCollapsed ? 0 : '24px'}
+        p={isCollapsed ? 0 : 4}
         overflowX='hidden'
         overflowY='auto'
         boxShadow={isCollapsed ? 'none' : 'sm'}
