@@ -79,6 +79,7 @@ const Sidebar = ({
   hasFoi = false,
   showFoi = true,
   onToggleFoi,
+  onScenarioChange,
 }) => {
   const { allVirus, allSpecies, allTimeFrame, allModels } = useAppContext();
   const { status: authStatus } = useAuth();
@@ -262,10 +263,16 @@ const Sidebar = ({
         label={TIMEFRAME_LABEL}
         options={allTimeFrame}
         info={TIMEFRAME_INFO}
-        handleAction={handleTimeFrameChange}
-        isLocked={!!customData}
-        lockedValue={customData ? customData.scenario : ''}
-        describedBy={CUSTOM_DATA_NOTICE_ID}
+        // A model run has every scenario: the switcher flips between its rasters
+        // instead of filtering the catalog.
+        handleAction={
+          customData
+            ? ([name]) => onScenarioChange(name)
+            : handleTimeFrameChange
+        }
+        value={customData ? customData.scenario : undefined}
+        availableValues={customData ? customData.availableScenarios : []}
+        describedBy={customData ? CUSTOM_DATA_NOTICE_ID : undefined}
       />
       <FormControlSwitch
         label={SDM_TOGGLE_LABEL}
@@ -383,7 +390,7 @@ const Sidebar = ({
             previewCount={previewCount}
             previewName={previewName}
             linkedViruses={linkedViruses}
-            onTimeFrameChange={handleTimeFrameChange}
+            onScenarioChange={onScenarioChange}
             hasFoi={hasFoi}
             showFoi={showFoi}
             onToggleFoi={onToggleFoi}

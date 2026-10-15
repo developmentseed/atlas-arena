@@ -25,7 +25,6 @@ import {
 import { LuCheck, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
 import { speciesKey, useFoiParams } from '@/libs/foiParams';
-import { DEFAULT_TIME } from '@/config/constants/general';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
 import {
@@ -61,10 +60,6 @@ import {
   SHOW_FOI_LABEL,
   SHOW_POINTS_LABEL,
 } from '@/config/constants/constants.explore';
-
-// Model runs are submitted for the current climate; the scenario radios were
-// dropped from the upload steps.
-const UPLOAD_SCENARIO = DEFAULT_TIME;
 
 const STATUS = { IDLE: 'idle', UPLOADING: 'uploading', ERROR: 'error' };
 
@@ -134,7 +129,7 @@ const RunModelsPanel = ({
   previewCount = null,
   previewName = null,
   linkedViruses = [],
-  onTimeFrameChange,
+  onScenarioChange,
   hasFoi = false,
   showFoi = true,
   onToggleFoi,
@@ -222,7 +217,6 @@ const RunModelsPanel = ({
     setStatus(STATUS.UPLOADING);
     try {
       const result = await onUpload({
-        scenario: UPLOAD_SCENARIO,
         species: speciesName(selectedSpecies),
         pathogens: foiParams.pathogens(selectedSpecies, pathogens),
         file,
@@ -232,7 +226,6 @@ const RunModelsPanel = ({
       if (onUploadSuccess) {
         onUploadSuccess({
           ...result,
-          scenario: UPLOAD_SCENARIO,
           species: speciesName(selectedSpecies),
           file,
           pointCount: count,
@@ -299,9 +292,10 @@ const RunModelsPanel = ({
           label={TIMEFRAME_LABEL}
           info={TIMEFRAME_INFO}
           options={allTimeFrame}
-          handleAction={onTimeFrameChange}
-          isLocked
-          lockedValue={customData.scenario}
+          // Every run models all scenarios; this flips between its rasters.
+          handleAction={([name]) => onScenarioChange(name)}
+          value={customData.scenario}
+          availableValues={customData.availableScenarios}
         />
         {(hasFoi || hasPoints) && (
           <Box role='group' aria-labelledby='map-layers-heading'>
