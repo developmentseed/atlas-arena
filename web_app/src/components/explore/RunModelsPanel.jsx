@@ -22,9 +22,11 @@ import {
   Text,
   useFileUpload,
 } from '@chakra-ui/react';
-import { LuCheck, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
+import { LuCheck, LuDownload, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
 import { speciesKey, useFoiParams } from '@/libs/foiParams';
+import { downloadJobRasters } from '@/libs/jobs';
+import { toaster } from '@/components/ui/toaster';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
 import {
@@ -56,6 +58,9 @@ import {
   RESULTS_POINTS,
   MAP_LAYERS_LABEL,
   UPLOAD_NEW_DATASET,
+  DOWNLOAD_RESULTS,
+  DOWNLOAD_ERROR_TITLE,
+  DOWNLOAD_ERROR_TEXT,
   JOB_STATUS_TEXT,
   SHOW_FOI_LABEL,
   SHOW_POINTS_LABEL,
@@ -148,6 +153,7 @@ const RunModelsPanel = ({
   const [model, setModel] = useState('');
   const [status, setStatus] = useState(STATUS.IDLE);
   const [pointCount, setPointCount] = useState(null);
+  const [downloading, setDownloading] = useState(false);
   const dropzoneRef = useRef(null);
   const focusDropzoneOnReset = useRef(false);
 
@@ -249,6 +255,22 @@ const RunModelsPanel = ({
     if (onClearCustomData) onClearCustomData();
   };
 
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      await downloadJobRasters(customData.jobId);
+    } catch {
+      toaster.create({
+        type: 'error',
+        title: DOWNLOAD_ERROR_TITLE,
+        description: DOWNLOAD_ERROR_TEXT,
+        closable: true,
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (isSucceeded) {
     const count = previewCount ?? pointCount;
     return (
@@ -329,6 +351,16 @@ const RunModelsPanel = ({
         )}
         <Button
           mt='auto'
+          size='lg'
+          variant='solid'
+          colorPalette='blue'
+          loading={downloading}
+          onClick={handleDownload}
+        >
+          <Icon as={LuDownload} aria-hidden='true' />
+          {DOWNLOAD_RESULTS}
+        </Button>
+        <Button
           size='lg'
           variant='outline'
           colorPalette='blue'
