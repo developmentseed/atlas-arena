@@ -275,6 +275,8 @@ const Explore = ({ mddata }) => {
         onTabChange={setSidebarTab}
         customData={customData}
         previewCount={pointCount}
+        previewName={customJob.previewName}
+        linkedViruses={customJob.foiLayers.map((layer) => layer.virus)}
         onUpload={customJob.upload}
         onUploadSuccess={customJob.onUploadSuccess}
         onFileChange={customJob.previewFile}

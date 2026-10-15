@@ -67,6 +67,8 @@ const Sidebar = ({
   onTabChange,
   customData = null,
   previewCount = null,
+  previewName = null,
+  linkedViruses = [],
   onUpload,
   onUploadSuccess,
   onFileChange,
@@ -379,6 +381,8 @@ const Sidebar = ({
             onFileChange={onFileChange}
             onClearCustomData={onClearCustomData}
             previewCount={previewCount}
+            previewName={previewName}
+            linkedViruses={linkedViruses}
             onTimeFrameChange={handleTimeFrameChange}
             hasFoi={hasFoi}
             showFoi={showFoi}

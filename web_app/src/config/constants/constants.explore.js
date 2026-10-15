@@ -54,7 +54,11 @@ export const RUN_STEP_UPLOAD = 'Upload presence data';
 export const RUN_SINGLE_SPECIES = 'Please upload a single species only.';
 export const RUN_STEP_SPECIES = 'Species';
 export const RUN_STEP_PATHOGEN = 'Pathogen association';
-export const RUN_PATHOGEN_BADGE = 'Automatic';
+export const RUN_PATHOGEN_BADGE = 'Auto-selected';
+export const RUN_SPECIES_LOADING = 'Loading species…';
+export const RUN_SPECIES_ERROR_TITLE = 'Couldn’t load species list';
+export const RUN_SPECIES_ERROR_TEXT =
+  'Species and pathogen parameters are unavailable. Reload the page to try again.';
 export const RUN_STEP_MODEL = 'Model';
 export const RUN_SUBMIT = 'Run Model';
 export const RUN_IN_PROGRESS = 'Running model…';

@@ -16,6 +16,13 @@ export const API_URL =
   process.env.NEXT_PUBLIC_ATLASARENA_API_URL ??
   'https://epem44ggt1.execute-api.us-west-2.amazonaws.com/';
 
+// FOI params CSV (species/virus prevalence and K), read by the Run Models tab
+// at runtime so it can be updated without a deploy. The same object the API
+// falls back to. Set NEXT_PUBLIC_FOI_PARAMS_URL to point elsewhere.
+export const FOI_PARAMS_URL =
+  process.env.NEXT_PUBLIC_FOI_PARAMS_URL ??
+  'https://atlasarena-dev-data.s3.us-west-2.amazonaws.com/data/FOI/FOI_params_processed.csv';
+
 // HEADER LINKS
 export const LINK_HEADER = [
   { text: 'Home', href: '' },
