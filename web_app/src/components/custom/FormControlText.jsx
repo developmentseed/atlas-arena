@@ -15,7 +15,7 @@ const FormControlText = ({ label, text = '' }) => {
       >
         {label}
       </Heading>
-      <Text fontSize='sm' textAlign='start' fontWeight={400} color='initial'>
+      <Text fontSize='sm' lineHeight='shorter' textAlign='start' fontWeight={400} color='gray.600'>
         {text}
       </Text>
     </Box>

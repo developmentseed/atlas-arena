@@ -89,6 +89,10 @@ export const RESULTS_POINTS = (count = 0) =>
   `${count.toLocaleString('en-US')} presence points`;
 export const MAP_LAYERS_LABEL = 'Map layers';
 export const UPLOAD_NEW_DATASET = 'Upload new dataset';
+export const DOWNLOAD_RESULTS = 'Download results';
+export const DOWNLOAD_ERROR_TITLE = 'Download failed';
+export const DOWNLOAD_ERROR_TEXT =
+  'We couldn’t download the results. Please try again.';
 // CUSTOM JOB STATUS (sidebar, while custom data is loaded)
 export const JOB_STATUS_TEXT = {
   LOADING: 'Loading model run',

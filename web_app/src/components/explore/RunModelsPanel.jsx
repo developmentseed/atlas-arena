@@ -22,9 +22,11 @@ import {
   Text,
   useFileUpload,
 } from '@chakra-ui/react';
-import { LuCheck, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
+import { LuCheck, LuDownload, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
 import { speciesKey, useFoiParams } from '@/libs/foiParams';
+import { downloadJobRasters } from '@/libs/jobs';
+import { toaster } from '@/components/ui/toaster';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
 import {
@@ -56,6 +58,9 @@ import {
   RESULTS_POINTS,
   MAP_LAYERS_LABEL,
   UPLOAD_NEW_DATASET,
+  DOWNLOAD_RESULTS,
+  DOWNLOAD_ERROR_TITLE,
+  DOWNLOAD_ERROR_TEXT,
   JOB_STATUS_TEXT,
   SHOW_FOI_LABEL,
   SHOW_POINTS_LABEL,
@@ -148,6 +153,7 @@ const RunModelsPanel = ({
   const [model, setModel] = useState('');
   const [status, setStatus] = useState(STATUS.IDLE);
   const [pointCount, setPointCount] = useState(null);
+  const [downloading, setDownloading] = useState(false);
   const dropzoneRef = useRef(null);
   const focusDropzoneOnReset = useRef(false);
 
@@ -249,10 +255,26 @@ const RunModelsPanel = ({
     if (onClearCustomData) onClearCustomData();
   };
 
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      await downloadJobRasters(customData.jobId);
+    } catch {
+      toaster.create({
+        type: 'error',
+        title: DOWNLOAD_ERROR_TITLE,
+        description: DOWNLOAD_ERROR_TEXT,
+        closable: true,
+      });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   if (isSucceeded) {
     const count = previewCount ?? pointCount;
     return (
-      <Flex direction='column' flex={1} gap={4}>
+      <Flex direction='column' flex={1} gap={2}>
         <Flex
           direction='column'
           borderWidth='1px'
@@ -273,7 +295,12 @@ const RunModelsPanel = ({
           >
             {RESULTS_SPECIES_LABEL}
           </Text>
-          <Text fontSize='md' fontWeight={500} fontStyle='italic' color='blue.700'>
+          <Text
+            fontSize='md'
+            fontWeight={500}
+            fontStyle='italic'
+            color='blue.700'
+          >
             {customData.species}
           </Text>
           {count != null && (
@@ -329,7 +356,15 @@ const RunModelsPanel = ({
         )}
         <Button
           mt='auto'
-          size='lg'
+          variant='solid'
+          colorPalette='blue'
+          loading={downloading}
+          onClick={handleDownload}
+        >
+          <Icon as={LuDownload} aria-hidden='true' />
+          {DOWNLOAD_RESULTS}
+        </Button>
+        <Button
           variant='outline'
           colorPalette='blue'
           borderColor='currentColor'
@@ -375,8 +410,8 @@ const RunModelsPanel = ({
             <FileUpload.Dropzone
               ref={dropzoneRef}
               minH='auto'
-              py={5}
-              px={4}
+              py={3}
+              px={2}
               gap={1}
               borderWidth='2px'
               borderStyle='dashed'
@@ -388,7 +423,7 @@ const RunModelsPanel = ({
             >
               <Icon
                 as={LuUpload}
-                boxSize={6}
+                boxSize={4}
                 color='blue.700'
                 aria-hidden='true'
               />
@@ -419,7 +454,7 @@ const RunModelsPanel = ({
                 borderColor='gray.300'
                 borderRadius='md'
                 p={2}
-                gap={3}
+                gap={2}
               >
                 <Circle size={7} bg='green.100' color='green.700'>
                   <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
@@ -543,7 +578,9 @@ const RunModelsPanel = ({
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Title>{RUN_SPECIES_ERROR_TITLE}</Alert.Title>
-              <Alert.Description>{RUN_SPECIES_ERROR_TEXT}</Alert.Description>
+              <Alert.Description fontSize='xs' lineHeight='shorter'>
+                {RUN_SPECIES_ERROR_TEXT}
+              </Alert.Description>
             </Alert.Content>
           </Alert.Root>
         )}
@@ -552,12 +589,13 @@ const RunModelsPanel = ({
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Title>{UPLOAD_ERROR_TITLE}</Alert.Title>
-              <Alert.Description>{UPLOAD_ERROR_TEXT}</Alert.Description>
+              <Alert.Description fontSize='xs' lineHeight='shorter'>
+                {UPLOAD_ERROR_TEXT}
+              </Alert.Description>
             </Alert.Content>
           </Alert.Root>
         )}
         <Button
-          size='lg'
           colorPalette={file && !isFormDisabled ? 'blue' : 'gray'}
           variant={file && !isFormDisabled ? 'solid' : 'subtle'}
           disabled={!file || isFormDisabled}
@@ -579,9 +617,7 @@ const RunModelsPanel = ({
             </Progress.Root>
             <HStack gap={2} mt={2} role='status'>
               <Spinner size='xs' color='blue.600' aria-hidden='true' />
-              <Text fontSize='xs'>
-                {statusText}
-              </Text>
+              <Text fontSize='xs'>{statusText}</Text>
             </HStack>
           </Box>
         )}
@@ -597,7 +633,7 @@ const RunModelsPanel = ({
         )}
         <Alert.Root status='info' variant='subtle' colorPalette='blue'>
           <Alert.Indicator />
-          <Alert.Description fontSize='sm'>
+          <Alert.Description fontSize='xs' lineHeight='shorter'>
             {RUN_SERVER_NOTICE}
           </Alert.Description>
         </Alert.Root>

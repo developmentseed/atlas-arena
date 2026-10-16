@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { zipSync } from 'fflate';
 import { apiFetch } from '@/libs/api';
 
 // Custom-data model runs on the atlasarena-model-infra API: POST jobs with the
@@ -122,4 +123,39 @@ export const foiRasters = (rasters, scenarioKey) => {
 export const fetchPresence = async (url) => {
   const { data } = await axios.get(url);
   return data;
+};
+
+// Saves every raster of a succeeded job as one zip,
+// atlasarena_<species_slug>_<job_id>.zip with a <stem>.tif per raster. Gets
+// the job again for fresh presigned URLs (they expire), and fetches them with
+// plain axios like fetchPresence. The COGs are already DEFLATE-compressed, so
+// the zip only stores them.
+export const downloadJobRasters = async (jobId) => {
+  const job = await getJob(jobId);
+  const rasters = Object.entries(job.rasters || {});
+  if (!rasters.length) throw new Error('This job has no rasters');
+  const files = Object.fromEntries(
+    await Promise.all(
+      rasters.map(async ([stem, url]) => {
+        const { data } = await axios.get(url, { responseType: 'arraybuffer' });
+        return [`${stem}.tif`, new Uint8Array(data)];
+      })
+    )
+  );
+  const zipped = zipSync(files, { level: 0 });
+  const slug = (job.species_name || 'species')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_|_$/g, '');
+  const href = URL.createObjectURL(
+    new Blob([zipped], { type: 'application/zip' })
+  );
+  const link = document.createElement('a');
+  link.href = href;
+  link.download = `atlasarena_${slug}_${jobId}.zip`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Revoke after the click has handed the blob to the browser's download.
+  setTimeout(() => URL.revokeObjectURL(href), 0);
 };

@@ -27,6 +27,7 @@
     "@luma.gl/shadertools": "^9.4.0",
     "add": "^2.0.6",
     "axios": "^1.7.7",
+    "fflate": "^0.8.2",
     "fs": "^0.0.1-security",
     "gray-matter": "^4.0.3",
     "maplibre-gl": "^5.24.0",
