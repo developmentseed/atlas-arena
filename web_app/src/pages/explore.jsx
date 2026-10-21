@@ -78,8 +78,11 @@ const Explore = ({ mddata }) => {
   // Sidebar tab. A loaded model run opens Run Models; signing out leaves it.
   const [sidebarTab, setSidebarTab] = useState(SIDEBAR_TABS.EXPLORE);
   const customJobId = customData ? customData.jobId : null;
+  // The job the map was last fitted to; cleared with the job so reopening it fits again.
+  const fittedJobRef = useRef(null);
   useEffect(() => {
     if (customJobId) setSidebarTab(SIDEBAR_TABS.RUN);
+    else fittedJobRef.current = null;
   }, [customJobId]);
   useEffect(() => {
     if (authStatus !== 'signedIn') setSidebarTab(SIDEBAR_TABS.EXPLORE);
@@ -180,10 +183,22 @@ const Explore = ({ mddata }) => {
   const speciesCount = new Set(sdmItems.map((i) => i.species)).size;
   const defaultOpacity =
     speciesCount > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
+  // A model run's raster zooms the map to its extent, once per job: scenario
+  // switches load a new raster but keep the user's view.
+  const fitToCustomRaster = (_, { geographicBounds }) => {
+    if (!mapRef.current || fittedJobRef.current === customJobId) return;
+    fittedJobRef.current = customJobId;
+    const { west, south, east, north } = geographicBounds;
+    mapRef.current.fitBounds([
+      [west, south],
+      [east, north],
+    ]);
+  };
   const sdmLayers = sdmItems.map((item) =>
     buildCogLayer({
       item,
       opacity: (opacityFilter[item.species] ?? defaultOpacity) / 100,
+      onGeoTIFFLoad: customData ? fitToCustomRaster : undefined,
     })
   );
 
