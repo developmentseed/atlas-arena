@@ -107,9 +107,10 @@ const onTileUnload = (tile) => tile.content?.texture?.destroy();
 
 /**
  * A COG layer for one catalog row, coloured with the species' MAP_COLORS ramp
- * across the variable's value range.
+ * across the variable's value range. `onGeoTIFFLoad` gets the raster's
+ * `geographicBounds` once its header is parsed.
  */
-export const buildCogLayer = ({ item, opacity }) => {
+export const buildCogLayer = ({ item, opacity, onGeoTIFFLoad }) => {
   const [rangeMin, rangeMax] = item.range;
   // Like the Mapbox version, zero probability is transparent; ranges that go
   // negative (differences) only hide nodata, which is NaN or out of range
@@ -133,6 +134,7 @@ export const buildCogLayer = ({ item, opacity }) => {
     epsgResolver: resolveEpsg,
     beforeId: RASTER_BEFORE_ID,
     opacity,
+    onGeoTIFFLoad,
     getTileData,
     onTileUnload,
     renderTile: (tile) => ({
