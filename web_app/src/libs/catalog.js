@@ -1,4 +1,5 @@
 import catalog from '@/config/catalog.json';
+import { FALLBACK_COLOR_ORDER } from '@/config/constants/general';
 
 // Flatten the catalog into the row shape the store and filters already use
 // (display names for virus/species/time_frame/model, plus colours).
@@ -39,6 +40,33 @@ export const findVirus = (slug) => {
     name: name.charAt(0).toUpperCase() + name.slice(1),
     color: 'default',
   };
+};
+
+// A species display name's catalog colour; undefined outside the catalog.
+export const findSpeciesColor = (name) =>
+  Object.values(catalog.species).find(
+    (species) => species.name.toLowerCase() === `${name}`.toLowerCase()
+  )?.color;
+
+// One MAP_COLORS ramp per requested colour name, no two alike, for layers
+// shown together. The first request for a catalog colour keeps it; repeats and
+// missing ('default', null) ones get the next unused FALLBACK_COLOR_ORDER
+// ramp, cycling once all are used.
+export const distinctColors = (requested) => {
+  const used = new Set();
+  const kept = requested.map((color) => {
+    if (!color || color === 'default' || used.has(color)) return null;
+    used.add(color);
+    return color;
+  });
+  return kept.map((color, i) => {
+    if (color) return color;
+    const next =
+      FALLBACK_COLOR_ORDER.find((c) => !used.has(c)) ||
+      FALLBACK_COLOR_ORDER[i % FALLBACK_COLOR_ORDER.length];
+    used.add(next);
+    return next;
+  });
 };
 
 export const FOI_RANGE = catalog.variables.foi.range;

@@ -179,6 +179,20 @@ export const MAP_COLORS = {
   purple: ['#E9D8FD', '#B794F4', '#805AD5', '#553C9A', '#322659'],
   pink: ['#FED7E2', '#F687B3', '#D53F8C', '#97266D', '#521B41'],
 };
+// Ramps handed out, in order, to layers shown together that have no catalog
+// colour or would repeat one (see distinctColors). Neighbours differ in hue.
+export const FALLBACK_COLOR_ORDER = [
+  'default',
+  'orange',
+  'purple',
+  'pink',
+  'teal',
+  'red',
+  'blue',
+  'yellow',
+  'cyan',
+  'green',
+];
 // DEFAULT VALUES
 export const ALL_VIRUS = 'All (combined)';
 export const DEFAULT_TIME = 'Current (year 1990-2010)';

@@ -2,7 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { toaster } from '@/components/ui/toaster';
 import { useAuth } from '@/store/auth';
 import { setHashParams, useHashParams } from '@/libs/hashParams';
-import { findVirus, timeFrameKey, timeFrameName } from '@/libs/catalog';
+import {
+  distinctColors,
+  findSpeciesColor,
+  findVirus,
+  timeFrameKey,
+  timeFrameName,
+} from '@/libs/catalog';
 import {
   POLL_INTERVAL_MS,
   TERMINAL_STATUSES,
@@ -200,6 +206,21 @@ export const useCustomJob = () => {
       : 'current';
   const jobPresence = active && presence?.jobId === jobId ? presence.fc : null;
 
+  // The job's species and each FOI virus get distinct ramps, so its SDM and
+  // FOI layers never share one. Viruses claim their catalog colours first (the
+  // same as the catalog hotspots), sorted so a virus keeps its ramp across
+  // scenarios; the species takes its own if still free.
+  const foiOutputs = succeeded
+    ? foiRasters(job.rasters, scenario)
+        .map((output) => ({ ...output, ...findVirus(output.virusSlug) }))
+        .sort((a, b) => a.virusSlug.localeCompare(b.virusSlug))
+    : [];
+  const colors = distinctColors([
+    ...foiOutputs.map((output) => output.color),
+    findSpeciesColor(job?.species_name),
+  ]);
+  const speciesColor = colors[colors.length - 1];
+
   return {
     // { jobId, scenario and availableScenarios (display names), species,
     // status } while a job is loaded.
@@ -213,18 +234,18 @@ export const useCustomJob = () => {
         }
       : null,
     rasterUrl: succeeded ? pickRaster(job.rasters, scenario) : null,
+    // The MAP_COLORS ramp for the job's species layer.
+    speciesColor,
     isDelta: isDeltaScenario(scenario),
     setScenario,
     // [{ virus (catalog name), color, foiUrl, hotspotUrl }] once it succeeded;
     // empty when the species has no FOI parameters.
-    foiLayers: succeeded
-      ? foiRasters(job.rasters, scenario).map(
-          ({ virusSlug, foi, hotspots }) => {
-            const { name, color } = findVirus(virusSlug);
-            return { virus: name, color, foiUrl: foi, hotspotUrl: hotspots };
-          }
-        )
-      : [],
+    foiLayers: foiOutputs.map(({ name, foi, hotspots }, i) => ({
+      virus: name,
+      color: colors[i],
+      foiUrl: foi,
+      hotspotUrl: hotspots,
+    })),
     showFoi,
     setShowFoi,
     points: previewFc || (showPoints ? jobPresence : null),
