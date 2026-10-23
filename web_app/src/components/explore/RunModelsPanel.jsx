@@ -659,7 +659,6 @@ const RunModelsPanel = ({
                 </Checkbox.Root>
                 {missing.prevalence.includes(virus) && (
                   <Field.Root
-                    ps={6}
                     pb={1}
                     gap={1}
                     required
