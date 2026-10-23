@@ -107,7 +107,7 @@ const Sidebar = ({
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
-  const [selectedHotSpot, setSelectedHotSpot] = useState(DEFAULT_SDM_TOGGLE);
+  const [showSdm, setShowSdm] = useState(DEFAULT_SDM_TOGGLE);
 
   useEffect(() => {
     const tmpSpecies = allSpecies.map((i) => i.name);
@@ -120,25 +120,24 @@ const Sidebar = ({
     );
   }, [allVirus]);
   // actions
-  const handleSetDefault = (virus, species, time_frame, model, hotspot) => {
+  const handleSetDefault = (virus, species, time_frame, model, sdm) => {
     setSelectedVirus(virus);
     setSelectedSpecies(species);
     setSelectedTimeFrame(time_frame);
     setSelectedModel(model);
-    setSelectedHotSpot(hotspot);
+    setShowSdm(sdm);
 
     handleFilterTilesId({
       virus,
       species,
       time_frame,
       model,
-      hotspot,
     });
   };
 
   const handleVirusChange = (value) => {
     let species = [];
-    if (selectedHotSpot) {
+    if (showSdm) {
       if (value === ALL_VIRUS) {
         species = allSpecies.map((i) => i.name);
       } else {
@@ -153,7 +152,6 @@ const Sidebar = ({
         species: species,
         time_frame: selectedTimeFrame,
         model: selectedModel,
-        hotspot: true,
       });
     } else {
       setSelectedVirus(value);
@@ -163,7 +161,6 @@ const Sidebar = ({
         species: [],
         time_frame: selectedTimeFrame,
         model: '',
-        hotspot: true,
       });
     }
   };
@@ -184,7 +181,6 @@ const Sidebar = ({
       species: [...species],
       time_frame: selectedTimeFrame,
       model: selectedModel,
-      hotspot: true,
     });
   };
 
@@ -196,7 +192,6 @@ const Sidebar = ({
       species: selectedSpecies,
       time_frame: value,
       model: selectedModel,
-      hotspot: true,
     });
   };
 
@@ -208,15 +203,14 @@ const Sidebar = ({
       species: selectedSpecies,
       time_frame: selectedTimeFrame,
       model,
-      hotspot: true,
     });
   };
 
-  const handleHotSpotChange = () => {
-    const newHotSpot = !selectedHotSpot;
-    setSelectedHotSpot(newHotSpot);
+  const handleSdmToggle = () => {
+    const newShowSdm = !showSdm;
+    setShowSdm(newShowSdm);
 
-    if (newHotSpot) {
+    if (newShowSdm) {
       let species = [];
       if (selectedVirus === ALL_VIRUS) {
         species = allSpecies.map((i) => i.name);
@@ -233,7 +227,6 @@ const Sidebar = ({
         species: species,
         time_frame: selectedTimeFrame,
         model: DEFAULT_MODEL,
-        hotspot: true,
       });
     } else {
       setSelectedSpecies([]);
@@ -244,7 +237,6 @@ const Sidebar = ({
         species: [],
         time_frame: selectedTimeFrame,
         model: '',
-        hotspot: true,
       });
     }
   };
@@ -276,8 +268,8 @@ const Sidebar = ({
       />
       <FormControlSwitch
         label={SDM_TOGGLE_LABEL}
-        value={selectedHotSpot}
-        handleAction={handleHotSpotChange}
+        value={showSdm}
+        handleAction={handleSdmToggle}
       />
       <FormControlCheckBoxSpecies
         label={SPECIES_LABEL}
@@ -286,7 +278,7 @@ const Sidebar = ({
         values={selectedSpecies}
         handleAction={handleSpeciesChange}
         filterValue={selectedVirus}
-        isDisabled={!selectedHotSpot}
+        isDisabled={!showSdm}
         isLocked={!!customData}
         notice={
           customData && customData.species
@@ -301,7 +293,7 @@ const Sidebar = ({
         info={MODEL_INFO}
         value={selectedModel}
         handleAction={handleModelChange}
-        isDisabled={!selectedHotSpot}
+        isDisabled={!showSdm}
         isLocked={!!customData}
         describedBy={CUSTOM_DATA_NOTICE_ID}
       />
