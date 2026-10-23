@@ -84,6 +84,8 @@ export const MAP_POINTS_LOADED = (count = 0) =>
   `${count.toLocaleString('en-US')} presence points loaded`;
 export const RESULTS_DESCRIPTION =
   'Results for the data you uploaded. Switch climate scenarios to see projected change.';
+export const SHARED_RESULTS_DESCRIPTION =
+  'Results of a shared model run. Switch climate scenarios to see projected change.';
 export const RESULTS_SPECIES_LABEL = 'Uploaded species';
 export const RESULTS_POINTS = (count = 0) =>
   `${count.toLocaleString('en-US')} presence points`;
@@ -104,7 +106,9 @@ export const SHOW_POINTS_LABEL = 'Show uploaded presence points';
 export const SHOW_FOI_LABEL = 'Show Force of Infection';
 export const LEGEND_FOI_TITLE = 'Force of infection';
 export const LEGEND_FOI_TICKS = ['0', '0.025', '0.05'];
-export const SIGN_IN_TO_VIEW_JOB = 'Sign in to view this model run';
+export const JOB_NOT_AVAILABLE_TITLE = 'Results not available yet';
+export const JOB_NOT_AVAILABLE_TEXT =
+  'This model run hasn’t finished, or the link is wrong. Check back later.';
 export const JOB_FAILED_TITLE = 'Model run failed';
 export const JOB_NOT_FOUND_TITLE = 'Model run not found';
 
