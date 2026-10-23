@@ -575,7 +575,7 @@ const RunModelsPanel = ({
                 <Circle size={7} bg='green.100' color='green.700'>
                   <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
                 </Circle>
-                <FileUpload.ItemContent lineHeight={1}>
+                <FileUpload.ItemContent lineHeight={1} overflow='hidden'>
                   <FileUpload.ItemName fontWeight={600} mb={1} />
                   <VStack gap={1} fontSize='xs' color='gray.600' align='start'>
                     <Text>
