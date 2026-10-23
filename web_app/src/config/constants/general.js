@@ -23,6 +23,14 @@ export const FOI_PARAMS_URL =
   process.env.NEXT_PUBLIC_FOI_PARAMS_URL ??
   'https://atlasarena-dev-data.s3.us-west-2.amazonaws.com/data/FOI/FOI_params_processed.csv';
 
+// Public job outputs (atlasarena-model-infra, the CDK "JobsPublicUrl" output):
+// a finished job's result.json, rasters and presence points, readable without
+// signing in. Must end in '/'. Set NEXT_PUBLIC_ATLASARENA_JOBS_URL to point
+// elsewhere.
+export const JOBS_URL =
+  process.env.NEXT_PUBLIC_ATLASARENA_JOBS_URL ??
+  'https://atlasarena-dev-jobs.s3.us-west-2.amazonaws.com/';
+
 // HEADER LINKS
 export const LINK_HEADER = [
   { text: 'Home', href: '' },
