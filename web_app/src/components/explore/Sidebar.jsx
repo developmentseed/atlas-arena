@@ -49,6 +49,7 @@ import {
   TAB_RUN_SIGNED_OUT,
   RUN_DESCRIPTION,
   RESULTS_DESCRIPTION,
+  SHARED_RESULTS_DESCRIPTION,
   FILTERS_SHOW,
   FILTERS_HIDE,
 } from '@/config/constants/constants.explore';
@@ -84,6 +85,8 @@ const Sidebar = ({
   const { allVirus, allSpecies, allTimeFrame, allModels } = useAppContext();
   const { status: authStatus } = useAuth();
   const canRunModels = authStatus === 'signedIn';
+  // Signed out, Run Models only shows a linked model run's results.
+  const canOpenRun = canRunModels || Boolean(customData);
 
   // Desktop: side panel, open by default. Mobile: top bar with a panel that
   // slides down over the map, closed by default so the map is visible.
@@ -311,8 +314,8 @@ const Sidebar = ({
   const runTrigger = (
     <Tabs.Trigger
       value={SIDEBAR_TABS.RUN}
-      disabled={!canRunModels}
-      pointerEvents={canRunModels ? undefined : 'none'}
+      disabled={!canOpenRun}
+      pointerEvents={canOpenRun ? undefined : 'none'}
       flex={1}
       whiteSpace='nowrap'
     >
@@ -340,7 +343,7 @@ const Sidebar = ({
           >
             {TAB_EXPLORE}
           </Tabs.Trigger>
-          {canRunModels ? (
+          {canOpenRun ? (
             runTrigger
           ) : (
             <Tooltip.Root openDelay={100} positioning={{ placement: 'top' }}>
@@ -377,9 +380,11 @@ const Sidebar = ({
           <FormControlText
             label={TAB_RUN}
             text={
-              customData && customData.status === 'SUCCEEDED'
-                ? RESULTS_DESCRIPTION
-                : RUN_DESCRIPTION
+              !canRunModels
+                ? SHARED_RESULTS_DESCRIPTION
+                : customData && customData.status === 'SUCCEEDED'
+                  ? RESULTS_DESCRIPTION
+                  : RUN_DESCRIPTION
             }
           />
           <RunModelsPanel

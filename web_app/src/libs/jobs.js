@@ -1,10 +1,12 @@
 import axios from 'axios';
 import { zipSync } from 'fflate';
 import { apiFetch } from '@/libs/api';
+import { JOBS_URL } from '@/config/constants/general';
 
 // Custom-data model runs on the atlasarena-model-infra API: POST jobs with the
-// presence GeoJSON inline, then poll GET jobs/{id} until it finishes. On
-// SUCCEEDED the job carries presigned COG URLs keyed by raster stem.
+// presence GeoJSON inline, then poll GET jobs/{id} (signed in) until it
+// finishes. A finished job's outputs are public in S3 (JOBS_URL), so anyone
+// with its id reads them, signed in or not: see getJobResult.
 
 export const POLL_INTERVAL_MS = 5000;
 export const TERMINAL_STATUSES = ['SUCCEEDED', 'FAILED', 'UNKNOWN'];
@@ -73,11 +75,43 @@ export const submitJob = async ({ species, presence, pathogens = [] }) => {
   return data.job_id;
 };
 
-// { job_id, status, species_name, error, presence_url, rasters, ... }
+// { job_id, status, species_name, error, ... }; needs a signed-in user.
 export const getJob = async (jobId) => {
   const { data } = await apiFetch(`jobs/${encodeURIComponent(jobId)}`);
   return data;
 };
+
+// Thrown by getJobResult for a job with no public result: unknown, or not
+// finished (S3 answers 403 for a missing object it won't list).
+export class JobNotAvailable extends Error {}
+
+// A finished job's public result: { job_id, species_name, rasters }, rasters
+// being public COG URLs keyed by stem (as pickRaster and foiRasters expect).
+// result.json is the worker's last write, so it exists only once the job has
+// succeeded. Its raster URIs are GDAL paths (/vsis3/<bucket>/jobs/<id>/<file>);
+// the files sit next to it, so only their basenames are used.
+export const getJobResult = async (jobId) => {
+  const base = `${JOBS_URL}jobs/${encodeURIComponent(jobId)}/`;
+  let data;
+  try {
+    ({ data } = await axios.get(`${base}result.json`));
+  } catch (err) {
+    if ([403, 404].includes(err.response?.status)) throw new JobNotAvailable();
+    throw err;
+  }
+  const rasters = Object.fromEntries(
+    Object.values(data.rasters || {}).map((uri) => {
+      const file = uri.split('/').pop();
+      return [file.replace(/\.tif$/, ''), `${base}${file}`];
+    })
+  );
+  return { job_id: data.job_id, species_name: data.species_name, rasters };
+};
+
+// The job's uploaded points (public). Older jobs, and ones submitted with a
+// path/URI presence, have none: fetching it then fails.
+export const presenceUrl = (jobId) =>
+  `${JOBS_URL}_control/${encodeURIComponent(jobId)}/presence.geojson`;
 
 // Probability raster for the timeframe: stems are <species_slug>_<Scenario>
 // (e.g. calomys_musculinus_SSP2), next to _diff_, _foi_ and _hotspots_ ones.
@@ -118,20 +152,17 @@ export const foiRasters = (rasters, scenarioKey) => {
   return Object.values(byVirus);
 };
 
-// The presence GeoJSON behind a job's presigned presence_url. Plain axios: an
-// Authorization header would make S3 reject the presigned request.
+// The presence GeoJSON at presenceUrl. Plain axios: S3 needs no Authorization.
 export const fetchPresence = async (url) => {
   const { data } = await axios.get(url);
   return data;
 };
 
 // Saves every raster of a succeeded job as one zip,
-// atlasarena_<species_slug>_<job_id>.zip with a <stem>.tif per raster. Gets
-// the job again for fresh presigned URLs (they expire), and fetches them with
-// plain axios like fetchPresence. The COGs are already DEFLATE-compressed, so
-// the zip only stores them.
+// atlasarena_<species_slug>_<job_id>.zip with a <stem>.tif per raster. The
+// COGs are already DEFLATE-compressed, so the zip only stores them.
 export const downloadJobRasters = async (jobId) => {
-  const job = await getJob(jobId);
+  const job = await getJobResult(jobId);
   const rasters = Object.entries(job.rasters || {});
   if (!rasters.length) throw new Error('This job has no rasters');
   const files = Object.fromEntries(

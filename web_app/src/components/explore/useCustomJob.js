@@ -6,43 +6,51 @@ import { findVirus, timeFrameKey, timeFrameName } from '@/libs/catalog';
 import {
   POLL_INTERVAL_MS,
   TERMINAL_STATUSES,
+  JobNotAvailable,
   fetchPresence,
   foiRasters,
   getJob,
+  getJobResult,
   isDeltaScenario,
   isJobId,
   isScenario,
   jobScenarios,
   pickRaster,
+  presenceUrl,
   readPresence,
   submitJob,
 } from '@/libs/jobs';
 import {
   JOB_FAILED_TITLE,
+  JOB_NOT_AVAILABLE_TEXT,
+  JOB_NOT_AVAILABLE_TITLE,
   JOB_NOT_FOUND_TITLE,
-  SIGN_IN_TO_VIEW_JOB,
 } from '@/config/constants/constants.explore';
-
-const SIGN_IN_TOAST_ID = 'sign-in-to-view-job';
 
 // The custom-data model run shown on Explore. The URL fragment is the source
 // of truth (#job=<id>&scenario=<time_frames key>): uploading pushes it,
 // clearing removes it, and loading, reloading, shared links and Back/Forward
 // all just follow it. Every job models all scenarios, so switching scenario
-// only re-picks rasters from the loaded job. Jobs need a signed-in user to read.
+// only re-picks rasters from the loaded job. A finished job's results are
+// public, so anyone with the link sees them; following a running job's status
+// needs a signed-in user.
 export const useCustomJob = () => {
   const { job: jobParam, scenario: scenarioParam } = useHashParams();
-  const { status: authStatus, enabled: authEnabled } = useAuth();
+  const { status: authStatus } = useAuth();
 
   const jobId = jobParam || null;
   const requestedScenario = isScenario(scenarioParam)
     ? scenarioParam
     : 'current';
-  const active = Boolean(jobId) && authStatus === 'signedIn';
+  const signedIn = authStatus === 'signedIn';
+  // Waits for auth: whether a job that isn't finished can be followed depends
+  // on it.
+  const active = Boolean(jobId) && authStatus !== 'loading';
 
-  // Latest GET jobs/{id} response for jobId; null until the first arrives.
+  // Latest status for jobId: GET jobs/{id}'s while it runs, then the public
+  // result (getJobResult's, with status SUCCEEDED). Null until the first.
   const [job, setJob] = useState(null);
-  // { jobId, fc }: points uploaded in this tab, or fetched via presence_url.
+  // { jobId, fc }: points uploaded in this tab, or fetched from presenceUrl.
   const [presence, setPresence] = useState(null);
   const presenceRef = useRef(presence);
   presenceRef.current = presence;
@@ -66,22 +74,6 @@ export const useCustomJob = () => {
     setHashParams({ job: null, scenario: null });
   }, []);
 
-  // A linked job needs signing in: prompt until signed in, dismissed, or the
-  // job leaves the URL.
-  useEffect(() => {
-    if (!jobId || !authEnabled || authStatus !== 'signedOut') return;
-    if (!toaster.isVisible(SIGN_IN_TOAST_ID)) {
-      toaster.create({
-        id: SIGN_IN_TOAST_ID,
-        type: 'info',
-        title: SIGN_IN_TO_VIEW_JOB,
-        closable: true,
-        duration: Infinity,
-      });
-    }
-    return () => toaster.dismiss(SIGN_IN_TOAST_ID);
-  }, [jobId, authEnabled, authStatus]);
-
   useEffect(() => {
     setShowPoints(true);
     setShowFoi(true);
@@ -96,18 +88,35 @@ export const useCustomJob = () => {
     }
     let cancelled = false;
     let timer = null;
-    let presenceRequested = false;
 
-    const loadPresence = (url) => {
-      presenceRequested = true;
-      if (presenceRef.current?.jobId === jobId) return;
-      fetchPresence(url)
+    // Points uploaded in this tab are already there; jobs without any (older
+    // ones) just fail to fetch.
+    if (presenceRef.current?.jobId !== jobId) {
+      fetchPresence(presenceUrl(jobId))
         .then((fc) => {
           if (!cancelled) setPresence({ jobId, fc });
         })
-        .catch(console.error);
+        .catch(() => {});
+    }
+
+    const fail = (err) => {
+      if (cancelled) return;
+      if (err instanceof JobNotAvailable)
+        dropJob(JOB_NOT_AVAILABLE_TITLE, JOB_NOT_AVAILABLE_TEXT);
+      else dropJob(JOB_FAILED_TITLE, err.message);
     };
 
+    const loadResult = async () => {
+      const result = await getJobResult(jobId);
+      if (cancelled) return;
+      if (!pickRaster(result.rasters, 'current')) {
+        dropJob(JOB_FAILED_TITLE, 'The model run produced no rasters');
+      } else {
+        setJob({ ...result, status: 'SUCCEEDED' });
+      }
+    };
+
+    // Signed in: follows a job that isn't finished until it is.
     const poll = async () => {
       let data;
       try {
@@ -116,7 +125,7 @@ export const useCustomJob = () => {
         if (cancelled) return;
         clearInterval(timer);
         const status = err.response?.status;
-        // apiFetch has signed out; keep the link for after signing back in.
+        // apiFetch has signed out, which reloads the job as anonymous.
         if (status === 401) return;
         if (status === 404) dropJob(JOB_NOT_FOUND_TITLE);
         else
@@ -125,27 +134,31 @@ export const useCustomJob = () => {
       }
       if (cancelled) return;
       if (TERMINAL_STATUSES.includes(data.status)) clearInterval(timer);
-      if (data.presence_url && !presenceRequested)
-        loadPresence(data.presence_url);
       if (data.status === 'FAILED' || data.status === 'UNKNOWN') {
         dropJob(JOB_FAILED_TITLE, data.error || `Job status ${data.status}`);
-      } else if (
-        data.status === 'SUCCEEDED' &&
-        !pickRaster(data.rasters, 'current')
-      ) {
-        dropJob(JOB_FAILED_TITLE, 'The model run produced no rasters');
+      } else if (data.status === 'SUCCEEDED') {
+        loadResult().catch(fail);
       } else {
         setJob(data);
       }
     };
 
-    poll();
-    timer = setInterval(poll, POLL_INTERVAL_MS);
+    // A finished job loads straight from its public result; anything else is
+    // followed through the API when signed in, and not available otherwise.
+    loadResult().catch((err) => {
+      if (cancelled) return;
+      if (signedIn && err instanceof JobNotAvailable) {
+        poll();
+        timer = setInterval(poll, POLL_INTERVAL_MS);
+      } else {
+        fail(err);
+      }
+    });
     return () => {
       cancelled = true;
       clearInterval(timer);
     };
-  }, [active, jobId, dropJob]);
+  }, [active, signedIn, jobId, dropJob]);
 
   // Run Models hooks (RunModelsPanel's onUpload / onUploadSuccess / onFileChange).
   const upload = async ({ species, pathogens, file }) => {

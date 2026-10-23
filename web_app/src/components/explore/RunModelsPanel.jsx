@@ -24,6 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { LuCheck, LuDownload, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
+import { useAuth } from '@/store/auth';
 import { speciesKey, useFoiParams } from '@/libs/foiParams';
 import { downloadJobRasters } from '@/libs/jobs';
 import { toaster } from '@/components/ui/toaster';
@@ -125,6 +126,7 @@ const fieldStep =
 // The "Run Models" tab: upload presence data and submit a model run, follow
 // its progress, then show the result's controls. Uses the custom job hooks
 // from useCustomJob (via Sidebar); this component only adds form state.
+// Signed out, it only shows a linked model run's results.
 const RunModelsPanel = ({
   customData = null,
   onUpload = null,
@@ -143,6 +145,8 @@ const RunModelsPanel = ({
   onTogglePoints,
 }) => {
   const { allModels, allTimeFrame } = useAppContext();
+  const { status: authStatus } = useAuth();
+  const canRunModels = authStatus === 'signedIn';
   const pathogenHeadingId = useId();
   const { foiParams, error: foiParamsError } = useFoiParams();
   const allSpecies = foiParams ? foiParams.species : [];
@@ -364,16 +368,29 @@ const RunModelsPanel = ({
           <Icon as={LuDownload} aria-hidden='true' />
           {DOWNLOAD_RESULTS}
         </Button>
-        <Button
-          variant='outline'
-          colorPalette='blue'
-          borderColor='currentColor'
-          bg='white'
-          onClick={handleNewDataset}
-        >
-          {UPLOAD_NEW_DATASET}
-        </Button>
+        {canRunModels && (
+          <Button
+            variant='outline'
+            colorPalette='blue'
+            borderColor='currentColor'
+            bg='white'
+            onClick={handleNewDataset}
+          >
+            {UPLOAD_NEW_DATASET}
+          </Button>
+        )}
       </Flex>
+    );
+  }
+
+  // Signed out: the linked run's results are loading (a run that isn't
+  // finished never gets here; it is dropped as not available).
+  if (!canRunModels) {
+    return (
+      <HStack gap={2} role='status'>
+        <Spinner size='xs' color='blue.600' aria-hidden='true' />
+        <Text fontSize='xs'>{JOB_STATUS_TEXT.LOADING}</Text>
+      </HStack>
     );
   }
 

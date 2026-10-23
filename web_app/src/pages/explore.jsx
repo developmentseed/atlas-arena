@@ -75,7 +75,8 @@ const Explore = ({ mddata }) => {
   const { customData } = customJob;
   const { status: authStatus } = useAuth();
 
-  // Sidebar tab. A loaded model run opens Run Models; signing out leaves it.
+  // Sidebar tab. A loaded model run opens Run Models (its results, for anyone
+  // with the link); otherwise signing out leaves it.
   const [sidebarTab, setSidebarTab] = useState(SIDEBAR_TABS.EXPLORE);
   const customJobId = customData ? customData.jobId : null;
   // The job the map was last fitted to; cleared with the job so reopening it fits again.
@@ -85,8 +86,9 @@ const Explore = ({ mddata }) => {
     else fittedJobRef.current = null;
   }, [customJobId]);
   useEffect(() => {
-    if (authStatus !== 'signedIn') setSidebarTab(SIDEBAR_TABS.EXPLORE);
-  }, [authStatus]);
+    if (authStatus !== 'signedIn' && !customJobId)
+      setSidebarTab(SIDEBAR_TABS.EXPLORE);
+  }, [authStatus, customJobId]);
   const pointCount = customJob.points ? customJob.points.features.length : null;
   const showPointsHint = sidebarTab === SIDEBAR_TABS.RUN && !customData;
 
