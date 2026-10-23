@@ -136,17 +136,20 @@ export const jobScenarios = (rasters) =>
   SCENARIO_KEYS.filter((key) => pickRaster(rasters, key));
 
 // FOI outputs for the timeframe, one entry per virus the species has FOI
-// parameters for: stems are <species_slug>__<virus_slug>_foi_<scenario>.
-// Returns [{ virusSlug, foi }] (URLs). The ..._hotspots_<scenario> rasters
-// next to them aren't shown, only downloaded. There are no FOI differences:
-// delta keys get their future scenario's.
+// parameters for: stems are <species_slug>__<virus_slug>_foi_<scenario> and
+// ..._hotspots_<scenario>. Returns [{ virusSlug, foi, hotspots }] (URLs).
+// There are no FOI differences: delta keys get their future scenario's.
 export const foiRasters = (rasters, scenarioKey) => {
   const scenario = toScenario(scenarioKey).toLowerCase();
-  const pattern = new RegExp(`^(.*)__(.+?)_foi_${scenario}$`);
-  return Object.entries(rasters || {}).flatMap(([stem, url]) => {
+  const pattern = new RegExp(`^(.*)__(.+?)_(foi|hotspots)_${scenario}$`);
+  const byVirus = {};
+  Object.entries(rasters || {}).forEach(([stem, url]) => {
     const match = stem.toLowerCase().match(pattern);
-    return match ? [{ virusSlug: match[2], foi: url }] : [];
+    if (!match) return;
+    const [, , virusSlug, kind] = match;
+    byVirus[virusSlug] = { virusSlug, ...byVirus[virusSlug], [kind]: url };
   });
+  return Object.values(byVirus);
 };
 
 // The presence GeoJSON at presenceUrl. Plain axios: S3 needs no Authorization.

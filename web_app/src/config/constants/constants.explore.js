@@ -33,6 +33,9 @@ export const LEGEND_ADJUST_OPACITY = (name = '') => `Adjust opacity of ${name}`;
 export const LEGEND_SCALE = (min = '', max = '') =>
   `Scale from ${min} to ${max}.`;
 export const LEGEND_SDM_TITLE = 'Species distribution';
+export const LEGEND_HOTSPOT_TITLE = 'Viral hotspot probability';
+export const LEGEND_HOTSPOT_DESC =
+  '90th percentile of contacts between humans and rodents';
 
 export const UNIT_SDM = 'probability';
 export const UNIT_DELTA = 'change';

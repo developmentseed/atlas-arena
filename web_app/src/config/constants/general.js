@@ -218,3 +218,8 @@ export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 // ZOOM VALUES
 export const MIN_ZOOM_MAP = 2;
 export const MAX_ZOOM_MAP = 11;
+
+export const MIN_ZOOM_HOTSPOT = 8;
+export const MAX_ZOOM_HOTSPOT = MAX_ZOOM_MAP + 0.5;
+export const MIN_ZOOM_HOTSPOT_HEADMAP = MIN_ZOOM_MAP - 0.5;
+export const MAX_ZOOM_HOTSPOT_HEADMAP = MIN_ZOOM_HOTSPOT + 1;
