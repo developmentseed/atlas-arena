@@ -5,16 +5,35 @@ import { FOI_PARAMS_URL } from '@/config/constants/general';
 // CSV on S3 (FOI_PARAMS_URL; columns Species, Virus, Prevalence, Test, K_min,
 // K_max; one row per study, prevalence in percent). Fetched at runtime so it
 // can be updated without a deploy. Model runs send the averaged values for the
-// chosen pathogens, so the API never reads the table itself.
+// chosen pathogens, so the API never reads the table itself. Values the table
+// has no estimate for ('NA') are entered by the user instead.
 
 const parseRows = (text) => {
-  const [header, ...lines] = text.trim().split(/\r?\n/);
-  const columns = header.split(',').map((c) => c.replace(/"/g, ''));
+  // The file may start with a UTF-8 BOM (saved from Excel).
+  const [header, ...lines] = text
+    .replace(/^\uFEFF/, '')
+    .trim()
+    .split(/\r?\n/)
+    .filter((line) => line.trim());
+  const columns = header.split(',').map((c) => c.replace(/"/g, '').trim());
   return lines.map((line) => {
     const values = line.split(',').map((v) => v.replace(/"/g, '').trim());
     return Object.fromEntries(columns.map((c, i) => [c, values[i]]));
   });
 };
+
+// A number, or null for 'NA', blank or anything else non-numeric.
+const toNumber = (value) => {
+  if (value == null || String(value).trim() === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+const mean = (values) => values.reduce((a, b) => a + b, 0) / values.length;
+
+// [min, max] of the values, or null when there are none.
+const extent = (values) =>
+  values.length ? [Math.min(...values), Math.max(...values)] : null;
 
 const displayName = (key) => key.charAt(0).toUpperCase() + key.slice(1);
 
@@ -22,19 +41,25 @@ export const speciesKey = (name) => (name || '').trim().toLowerCase();
 
 // The CSV text as lookups for the Run Models form.
 export const parseFoiParams = (text) => {
-  // { [species key]: { [virus]: { prevalences: [percent], k_min, k_max } } }.
-  // K is per species, so the first row of a pair stands for all of them.
+  // { [species key]: { k_min, k_max, viruses: { [virus]: [percent] } } }.
+  // K is per species, so the first row stands for all of them; it and the
+  // prevalence list are null/empty where the table has no estimate.
   const index = {};
   parseRows(text).forEach(({ Species, Virus, Prevalence, K_min, K_max }) => {
-    const key = Species.toLowerCase();
-    const viruses = (index[key] = index[key] || {});
-    viruses[Virus] = viruses[Virus] || {
-      prevalences: [],
-      k_min: Number(K_min),
-      k_max: Number(K_max),
-    };
-    viruses[Virus].prevalences.push(Number(Prevalence));
+    const key = speciesKey(Species);
+    if (!key || key === 'unknown' || !Virus) return;
+    const entry = (index[key] = index[key] || {
+      k_min: toNumber(K_min),
+      k_max: toNumber(K_max),
+      viruses: {},
+    });
+    const prevalences = (entry.viruses[Virus] = entry.viruses[Virus] || []);
+    const prevalence = toNumber(Prevalence);
+    if (prevalence != null) prevalences.push(prevalence);
   });
+
+  const hasK = (entry) => entry.k_min != null && entry.k_max != null;
+  const known = Object.values(index);
 
   return {
     // [{ key: 'abrothrix longipilis', name: 'Abrothrix longipilis' }], sorted.
@@ -43,20 +68,53 @@ export const parseFoiParams = (text) => {
       .map((key) => ({ key, name: displayName(key) })),
 
     virusesFor: (species) =>
-      Object.keys(index[speciesKey(species)] || {}).sort(),
+      Object.keys(index[speciesKey(species)]?.viruses || {}).sort(),
+
+    // What the user has to enter for the given viruses of a species:
+    // { k: whether its K range is unknown, prevalence: [viruses without one] }.
+    missingFor: (species, viruses) => {
+      const entry = index[speciesKey(species)];
+      if (!entry) return { k: false, prevalence: [] };
+      const ours = viruses.filter((virus) => entry.viruses[virus]);
+      return {
+        k: ours.length > 0 && !hasK(entry),
+        prevalence: ours.filter((virus) => !entry.viruses[virus].length),
+      };
+    },
+
+    // The observed ranges across the table, as hints for entered values:
+    // { k_min: [lo, hi], k_max: [lo, hi], prevalence: [lo, hi] (percent, of
+    // the per-pair means) }; each null if the table has none.
+    ranges: {
+      k_min: extent(known.filter(hasK).map((entry) => entry.k_min)),
+      k_max: extent(known.filter(hasK).map((entry) => entry.k_max)),
+      prevalence: extent(
+        known.flatMap((entry) =>
+          Object.values(entry.viruses)
+            .filter((prevalences) => prevalences.length)
+            .map(mean)
+        )
+      ),
+    },
 
     // The API's foi.pathogens for a species: mean prevalence (as a
     // proportion) and K range for each of the given viruses it has
-    // parameters for.
-    pathogens: (species, viruses) => {
-      const pairs = index[speciesKey(species)] || {};
+    // parameters for. `entered` ({ k_min, k_max, prevalence: { [virus]:
+    // percent } }) fills in what the table lacks (see missingFor).
+    pathogens: (species, viruses, entered = {}) => {
+      const entry = index[speciesKey(species)];
+      if (!entry) return [];
+      const [k_min, k_max] = hasK(entry)
+        ? [entry.k_min, entry.k_max]
+        : [entered.k_min, entered.k_max];
       return viruses
-        .filter((virus) => pairs[virus])
+        .filter((virus) => entry.viruses[virus])
         .map((virus) => {
-          const { prevalences, k_min, k_max } = pairs[virus];
-          const mean =
-            prevalences.reduce((a, b) => a + b, 0) / prevalences.length;
-          return { virus, prevalence: mean / 100, k_min, k_max };
+          const prevalences = entry.viruses[virus];
+          const percent = prevalences.length
+            ? mean(prevalences)
+            : entered.prevalence?.[virus];
+          return { virus, prevalence: percent / 100, k_min, k_max };
         });
     },
 

@@ -14,6 +14,7 @@ import {
   HStack,
   VStack,
   Icon,
+  Input,
   List,
   NativeSelect,
   Progress,
@@ -21,6 +22,7 @@ import {
   Stack,
   Text,
   useFileUpload,
+  VisuallyHidden,
 } from '@chakra-ui/react';
 import { LuCheck, LuDownload, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
@@ -38,6 +40,15 @@ import {
   RUN_STEP_SPECIES,
   RUN_STEP_PATHOGEN,
   RUN_PATHOGEN_BADGE,
+  RUN_PREVALENCE_LABEL,
+  RUN_PREVALENCE_HINT,
+  RUN_PREVALENCE_ERROR,
+  RUN_K_LABEL,
+  RUN_K_MIN_LABEL,
+  RUN_K_MAX_LABEL,
+  RUN_K_HINT,
+  RUN_K_ERROR,
+  RUN_K_ORDER_ERROR,
   RUN_SPECIES_LOADING,
   RUN_SPECIES_ERROR_TITLE,
   RUN_SPECIES_ERROR_TEXT,
@@ -115,6 +126,50 @@ const Step = ({ number, label, badge = null, wrap, children }) => (
   </List.Item>
 );
 
+// Parameters the user enters where the FOI table has no estimate, as typed:
+// the species' K range and a prevalence (percent) per virus.
+const NO_ENTERED = { k_min: '', k_max: '', prevalence: {} };
+
+// A typed value as a number, or null when blank or not a number.
+const toNumber = (value) => {
+  if (value == null || String(value).trim() === '') return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+};
+
+// [lo, hi] rounded for display, or null.
+const roundRange = (range, digits = 0) =>
+  range && range.map((value) => Number(value.toFixed(digits)));
+
+// Errors for the entered values the form needs (`missing`, see
+// foiParams.missingFor); a value still blank has no error but isn't valid.
+// { prevalence: { [virus]: error }, k_min, k_max, complete }.
+const checkEntered = (entered, missing) => {
+  const errors = { prevalence: {}, k_min: null, k_max: null };
+  let complete = true;
+  missing.prevalence.forEach((virus) => {
+    const raw = entered.prevalence[virus];
+    const value = toNumber(raw);
+    if (value == null || value < 0 || value > 100) complete = false;
+    if (raw && (value == null || value < 0 || value > 100)) {
+      errors.prevalence[virus] = RUN_PREVALENCE_ERROR;
+    }
+  });
+  if (missing.k) {
+    const min = toNumber(entered.k_min);
+    const max = toNumber(entered.k_max);
+    if (entered.k_min && (min == null || min < 0)) errors.k_min = RUN_K_ERROR;
+    if (entered.k_max && (max == null || max < 0)) errors.k_max = RUN_K_ERROR;
+    else if (min != null && max != null && max < min) {
+      errors.k_max = RUN_K_ORDER_ERROR;
+    }
+    if (min == null || max == null || errors.k_min || errors.k_max) {
+      complete = false;
+    }
+  }
+  return { ...errors, complete };
+};
+
 const fieldStep =
   (props = {}) =>
   (body) => (
@@ -122,6 +177,23 @@ const fieldStep =
       {body}
     </Field.Root>
   );
+
+// A number input for an entered FOI parameter (inside its Field).
+const EnteredInput = ({ value, onChange, max, disabled }) => (
+  <Input
+    type='number'
+    inputMode='decimal'
+    step='any'
+    min={0}
+    max={max}
+    size='sm'
+    bg='white'
+    borderColor='gray.300'
+    value={value}
+    onChange={(event) => onChange(event.target.value)}
+    disabled={disabled}
+  />
+);
 
 // The "Run Models" tab: upload presence data and submit a model run, follow
 // its progress, then show the result's controls. Uses the custom job hooks
@@ -148,12 +220,14 @@ const RunModelsPanel = ({
   const { status: authStatus } = useAuth();
   const canRunModels = authStatus === 'signedIn';
   const pathogenHeadingId = useId();
+  const kHeadingId = useId();
   const { foiParams, error: foiParamsError } = useFoiParams();
   const allSpecies = foiParams ? foiParams.species : [];
 
   const [species, setSpecies] = useState('');
   // The checked pathogens, or null for all of the species' viruses.
   const [checkedPathogens, setCheckedPathogens] = useState(null);
+  const [entered, setEntered] = useState(NO_ENTERED);
   const [model, setModel] = useState('');
   const [status, setStatus] = useState(STATUS.IDLE);
   const [pointCount, setPointCount] = useState(null);
@@ -190,12 +264,25 @@ const RunModelsPanel = ({
   const speciesName = (key) =>
     (allSpecies.find((item) => item.key === key) || {}).name || key;
   const pathogens = checkedPathogens ?? speciesViruses;
+  // What the table lacks for the checked pathogens, which the user enters.
+  const missing = foiParams
+    ? foiParams.missingFor(selectedSpecies, pathogens)
+    : { k: false, prevalence: [] };
+  const enteredErrors = checkEntered(entered, missing);
+  const ranges = foiParams ? foiParams.ranges : {};
 
   // A new species starts with all of its pathogens checked.
   const selectSpecies = (key) => {
     setSpecies(key);
     setCheckedPathogens(null);
+    setEntered(NO_ENTERED);
   };
+
+  const enterPrevalence = (virus, value) =>
+    setEntered((prev) => ({
+      ...prev,
+      prevalence: { ...prev.prevalence, [virus]: value },
+    }));
 
   const togglePathogen = (virus) =>
     setCheckedPathogens(
@@ -211,6 +298,7 @@ const RunModelsPanel = ({
     if (!key) return;
     setSpecies(key);
     setCheckedPathogens(null);
+    setEntered(NO_ENTERED);
   }, [foiParams, previewName]);
 
   // After "Upload new dataset", the results are replaced by the form: move
@@ -223,12 +311,21 @@ const RunModelsPanel = ({
   }, [customData]);
 
   const handleRun = async () => {
-    if (!onUpload || !file || !foiParams) return;
+    if (!onUpload || !file || !foiParams || !enteredErrors.complete) return;
     setStatus(STATUS.UPLOADING);
     try {
       const result = await onUpload({
         species: speciesName(selectedSpecies),
-        pathogens: foiParams.pathogens(selectedSpecies, pathogens),
+        pathogens: foiParams.pathogens(selectedSpecies, pathogens, {
+          k_min: toNumber(entered.k_min),
+          k_max: toNumber(entered.k_max),
+          prevalence: Object.fromEntries(
+            missing.prevalence.map((virus) => [
+              virus,
+              toNumber(entered.prevalence[virus]),
+            ])
+          ),
+        }),
         file,
       });
       const count = (result && result.pointCount) || 0;
@@ -394,6 +491,8 @@ const RunModelsPanel = ({
     );
   }
 
+  const canSubmit = file && !isFormDisabled && enteredErrors.complete;
+
   const statusText = isUploading
     ? UPLOAD_IN_PROGRESS
     : customData && JOB_STATUS_TEXT[customData.status];
@@ -476,7 +575,7 @@ const RunModelsPanel = ({
                 <Circle size={7} bg='green.100' color='green.700'>
                   <Icon as={LuCheck} boxSize={4} aria-hidden='true' />
                 </Circle>
-                <FileUpload.ItemContent lineHeight={1}>
+                <FileUpload.ItemContent lineHeight={1} overflow='hidden'>
                   <FileUpload.ItemName fontWeight={600} mb={1} />
                   <VStack gap={1} fontSize='xs' color='gray.600' align='start'>
                     <Text>
@@ -544,23 +643,91 @@ const RunModelsPanel = ({
         >
           <Stack gap={1}>
             {speciesViruses.map((virus) => (
-              <Checkbox.Root
-                key={virus}
-                size='sm'
-                colorPalette='blue'
-                checked={pathogens.includes(virus)}
-                onCheckedChange={() => togglePathogen(virus)}
-                disabled={isRunning}
-              >
-                <Checkbox.HiddenInput />
-                <Checkbox.Control />
-                <Checkbox.Label fontWeight='normal' fontStyle='italic'>
-                  {virus}
-                </Checkbox.Label>
-              </Checkbox.Root>
+              <Stack key={virus} gap={1}>
+                <Checkbox.Root
+                  size='sm'
+                  colorPalette='blue'
+                  checked={pathogens.includes(virus)}
+                  onCheckedChange={() => togglePathogen(virus)}
+                  disabled={isRunning}
+                >
+                  <Checkbox.HiddenInput />
+                  <Checkbox.Control />
+                  <Checkbox.Label fontWeight='normal' fontStyle='italic'>
+                    {virus}
+                  </Checkbox.Label>
+                </Checkbox.Root>
+                {missing.prevalence.includes(virus) && (
+                  <Field.Root
+                    pb={1}
+                    gap={1}
+                    required
+                    invalid={!!enteredErrors.prevalence[virus]}
+                  >
+                    <Field.Label fontSize='xs' fontWeight={500}>
+                      {RUN_PREVALENCE_LABEL}
+                      <VisuallyHidden>{` for ${virus}`}</VisuallyHidden>
+                    </Field.Label>
+                    <EnteredInput
+                      value={entered.prevalence[virus] ?? ''}
+                      onChange={(value) => enterPrevalence(virus, value)}
+                      max={100}
+                      disabled={isRunning}
+                    />
+                    <Field.ErrorText fontSize='xs'>
+                      {enteredErrors.prevalence[virus]}
+                    </Field.ErrorText>
+                    <Field.HelperText fontSize='xs' color='gray.600'>
+                      {RUN_PREVALENCE_HINT(roundRange(ranges.prevalence, 1))}
+                    </Field.HelperText>
+                  </Field.Root>
+                )}
+              </Stack>
             ))}
             {!speciesViruses.length && <Text fontSize='sm'>—</Text>}
           </Stack>
+          {missing.k && (
+            <Box role='group' aria-labelledby={kHeadingId}>
+              <Text id={kHeadingId} fontSize='xs' fontWeight={500} mb={1}>
+                {RUN_K_LABEL}
+              </Text>
+              <HStack gap={2} align='start'>
+                <Field.Root gap={1} required invalid={!!enteredErrors.k_min}>
+                  <Field.Label fontSize='xs' fontWeight={500}>
+                    {RUN_K_MIN_LABEL}
+                  </Field.Label>
+                  <EnteredInput
+                    value={entered.k_min}
+                    onChange={(k_min) =>
+                      setEntered((prev) => ({ ...prev, k_min }))
+                    }
+                    disabled={isRunning}
+                  />
+                  <Field.ErrorText fontSize='xs'>
+                    {enteredErrors.k_min}
+                  </Field.ErrorText>
+                </Field.Root>
+                <Field.Root gap={1} required invalid={!!enteredErrors.k_max}>
+                  <Field.Label fontSize='xs' fontWeight={500}>
+                    {RUN_K_MAX_LABEL}
+                  </Field.Label>
+                  <EnteredInput
+                    value={entered.k_max}
+                    onChange={(k_max) =>
+                      setEntered((prev) => ({ ...prev, k_max }))
+                    }
+                    disabled={isRunning}
+                  />
+                  <Field.ErrorText fontSize='xs'>
+                    {enteredErrors.k_max}
+                  </Field.ErrorText>
+                </Field.Root>
+              </HStack>
+              <Text fontSize='xs' color='gray.600' mt={1}>
+                {RUN_K_HINT(roundRange(ranges.k_min), roundRange(ranges.k_max))}
+              </Text>
+            </Box>
+          )}
         </Step>
 
         <Step
@@ -613,9 +780,9 @@ const RunModelsPanel = ({
           </Alert.Root>
         )}
         <Button
-          colorPalette={file && !isFormDisabled ? 'blue' : 'gray'}
-          variant={file && !isFormDisabled ? 'solid' : 'subtle'}
-          disabled={!file || isFormDisabled}
+          colorPalette={canSubmit ? 'blue' : 'gray'}
+          variant={canSubmit ? 'solid' : 'subtle'}
+          disabled={!canSubmit}
           onClick={handleRun}
         >
           {isRunning ? RUN_IN_PROGRESS : RUN_SUBMIT}
