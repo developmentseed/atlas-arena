@@ -55,6 +55,25 @@ export const RUN_SINGLE_SPECIES = 'Please upload a single species only.';
 export const RUN_STEP_SPECIES = 'Species';
 export const RUN_STEP_PATHOGEN = 'Pathogen association';
 export const RUN_PATHOGEN_BADGE = 'Auto-selected';
+// Entered parameters, for species/virus pairs the FOI table has no estimate for.
+// Ranges are [lo, hi] across the table, or null.
+const typical = (range, unit = '') =>
+  range ? ` Typical: ${range[0]}–${range[1]}${unit}.` : '';
+export const RUN_PREVALENCE_LABEL = 'Prevalence (%)';
+export const RUN_PREVALENCE_HINT = (range) =>
+  `No published estimate. Enter one to include this pathogen.${typical(range, '%')}`;
+export const RUN_PREVALENCE_ERROR = 'Enter a percentage from 0 to 100.';
+export const RUN_K_LABEL = 'Carrying capacity (K)';
+export const RUN_K_MIN_LABEL = 'Min';
+export const RUN_K_MAX_LABEL = 'Max';
+export const RUN_K_HINT = (minRange, maxRange) =>
+  `No published estimate for this species. Enter a range to compute force of infection.${
+    minRange && maxRange
+      ? ` Typical: min ${minRange[0]}–${minRange[1]}, max ${maxRange[0]}–${maxRange[1]}.`
+      : ''
+  }`;
+export const RUN_K_ERROR = 'Enter a number of 0 or more.';
+export const RUN_K_ORDER_ERROR = 'Max must be at least min.';
 export const RUN_SPECIES_LOADING = 'Loading species…';
 export const RUN_SPECIES_ERROR_TITLE = 'Couldn’t load species list';
 export const RUN_SPECIES_ERROR_TEXT =
