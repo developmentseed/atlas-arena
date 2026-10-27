@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '@/store/context';
 import FormControlComboboxSpecies from '@/components/custom/FormControlComboboxSpecies';
+import FormControlComboboxVirus from '@/components/custom/FormControlComboboxVirus';
 import FormControlSelect from '@/components/custom/FormControlSelect';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
@@ -194,11 +195,12 @@ const Sidebar = ({
 
   const exploreControls = (
     <>
-      <FormControlSelect
+      <FormControlComboboxVirus
         label={VIRUS_LABEL}
         options={allVirus}
         info={VIRUS_INFO}
         value={selectedVirus}
+        defaultValue={ALL_VIRUS}
         handleAction={handleVirusChange}
       />
 

@@ -121,17 +121,23 @@ const FormControlComboboxSpecies = ({
       {selectedOptions.length > 0 && (
         <Wrap gap={1} mt={1} aria-label={`Selected ${label}`}>
           {selectedOptions.map((item) => (
-            <Tag.Root key={item.key} size='md' colorPalette='gray'>
+            <Tag.Root
+              key={item.key}
+              size='md'
+              colorPalette='gray'
+              opacity={isInactive ? 0.4 : 1}
+              aria-disabled={isInactive || undefined}
+            >
               <Tag.Label>{item.name}</Tag.Label>
-              {!isInactive && (
-                <Tag.EndElement>
-                  <Tag.CloseTrigger
-                    aria-label={`Remove ${item.name}`}
-                    onClick={() => handleRemove(item.key)}
-                    cursor='pointer'
-                  />
-                </Tag.EndElement>
-              )}
+              {/* Kept while inactive so the tags don't shift */}
+              <Tag.EndElement>
+                <Tag.CloseTrigger
+                  aria-label={`Remove ${item.name}`}
+                  onClick={() => handleRemove(item.key)}
+                  disabled={isInactive}
+                  cursor={isInactive ? 'not-allowed' : 'pointer'}
+                />
+              </Tag.EndElement>
             </Tag.Root>
           ))}
         </Wrap>
