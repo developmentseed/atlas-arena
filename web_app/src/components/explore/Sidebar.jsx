@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '@/store/context';
-import FormControlCheckBoxSpecies from '@/components/custom/FormControlCheckBoxSpecies';
+import FormControlComboboxSpecies from '@/components/custom/FormControlComboboxSpecies';
 import FormControlSelect from '@/components/custom/FormControlSelect';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
@@ -139,117 +139,57 @@ const Sidebar = ({
     });
   };
 
-  const handleVirusChange = (value) => {
-    let species = [];
-    if (selectedHotSpot) {
-      if (value === ALL_VIRUS) {
-        species = allSpecies.map((i) => i.name);
-      } else {
-        species = allSpecies.filter((i) => i.virus == value).map((i) => i.name);
-      }
-      setSelectedVirus(value);
-      setSelectedSpecies(species);
-
-      // update
-      handleFilterTilesId({
-        virus: value,
-        species: species,
-        time_frame: selectedTimeFrame,
-        model: selectedModel,
-        hotspot: true,
-      });
-    } else {
-      setSelectedVirus(value);
-      setSelectedSpecies([]);
-      handleFilterTilesId({
-        virus: value,
-        species: [],
-        time_frame: selectedTimeFrame,
-        model: '',
-        hotspot: true,
-      });
-    }
-  };
-
-  const handleSpeciesChange = (id) => {
-    let species = [...selectedSpecies];
-    if (species.includes(id)) {
-      species = species.filter((i) => id !== i);
-    } else {
-      species.push(id);
-    }
-
-    setSelectedSpecies([...species]);
-
-    // update
+  // While "Show SDM" is off the selections are kept but no SDM layers are
+  // requested, so toggling it back on restores them.
+  const updateTiles = ({
+    virus = selectedVirus,
+    species = selectedSpecies,
+    time_frame = selectedTimeFrame,
+    model = selectedModel,
+    hotspot = selectedHotSpot,
+  }) => {
     handleFilterTilesId({
-      virus: selectedVirus,
-      species: [...species],
-      time_frame: selectedTimeFrame,
-      model: selectedModel,
+      virus,
+      species: hotspot ? species : [],
+      time_frame,
+      model: hotspot ? model : '',
       hotspot: true,
     });
+  };
+
+  const handleVirusChange = (value) => {
+    let species = [];
+    if (value === ALL_VIRUS) {
+      species = allSpecies.map((i) => i.name);
+    } else {
+      species = allSpecies
+        .filter((i) => (i.virus || []).includes(value))
+        .map((i) => i.name);
+    }
+    setSelectedVirus(value);
+    setSelectedSpecies(species);
+    updateTiles({ virus: value, species });
+  };
+
+  const handleSpeciesChange = (species) => {
+    setSelectedSpecies([...species]);
+    updateTiles({ species: [...species] });
   };
 
   const handleTimeFrameChange = (value) => {
     setSelectedTimeFrame(value);
-    // update
-    handleFilterTilesId({
-      virus: selectedVirus,
-      species: selectedSpecies,
-      time_frame: value,
-      model: selectedModel,
-      hotspot: true,
-    });
+    updateTiles({ time_frame: value });
   };
 
   const handleModelChange = (model) => {
     setSelectedModel(model);
-    // update State
-    handleFilterTilesId({
-      virus: selectedVirus,
-      species: selectedSpecies,
-      time_frame: selectedTimeFrame,
-      model,
-      hotspot: true,
-    });
+    updateTiles({ model });
   };
 
   const handleHotSpotChange = () => {
     const newHotSpot = !selectedHotSpot;
     setSelectedHotSpot(newHotSpot);
-
-    if (newHotSpot) {
-      let species = [];
-      if (selectedVirus === ALL_VIRUS) {
-        species = allSpecies.map((i) => i.name);
-      } else {
-        species = allSpecies
-          .filter((i) => i.virus == selectedVirus)
-          .map((i) => i.name);
-      }
-      setSelectedSpecies(species);
-      setSelectedModel(DEFAULT_MODEL);
-
-      handleFilterTilesId({
-        virus: selectedVirus,
-        species: species,
-        time_frame: selectedTimeFrame,
-        model: DEFAULT_MODEL,
-        hotspot: true,
-      });
-    } else {
-      setSelectedSpecies([]);
-      setSelectedModel('');
-
-      handleFilterTilesId({
-        virus: selectedVirus,
-        species: [],
-        time_frame: selectedTimeFrame,
-        model: '',
-        hotspot: true,
-      });
-    }
+    updateTiles({ hotspot: newHotSpot });
   };
 
   const exploreControls = (
@@ -282,7 +222,7 @@ const Sidebar = ({
         value={selectedHotSpot}
         handleAction={handleHotSpotChange}
       />
-      <FormControlCheckBoxSpecies
+      <FormControlComboboxSpecies
         label={SPECIES_LABEL}
         options={allSpecies}
         info={SPECIES_INFO}
