@@ -251,13 +251,20 @@ export const useCustomJob = () => {
     speciesColor,
     isDelta: isDeltaScenario(scenario),
     setScenario,
+    // [{ virus (catalog name), color, foiUrl }] once it succeeded; empty when
+    // the species has no FOI parameters.
+    foiLayers: succeeded
+      ? foiRasters(job.rasters, scenario).map(({ virusSlug, foi }) => {
+          const { name, color } = findVirus(virusSlug);
+          return { virus: name, color, foiUrl: foi };
+        })
+      : [],
     // [{ virus (catalog name), color, foiUrl, hotspotUrl }] once it succeeded;
     // empty when the species has no FOI parameters.
-    foiLayers: foiOutputs.map(({ name, foi, hotspots }, i) => ({
+    foiLayers: foiOutputs.map(({ name, foi }, i) => ({
       virus: name,
       color: colors[i],
       foiUrl: foi,
-      hotspotUrl: hotspots,
     })),
     showFoi,
     setShowFoi,

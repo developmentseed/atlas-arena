@@ -5,8 +5,6 @@ import Map from 'react-map-gl/maplibre';
 import { useAppContext } from '@/store/context';
 import { dynamicFilter, getUniqueCombinations, sortList } from '@/utils/utils';
 import Sidebar, { SIDEBAR_TABS } from '@/components/explore/Sidebar';
-import axios from 'axios';
-import pako from 'pako';
 import SDMLegend from '@/components/explore/SDMLegend';
 import { getMetadataMd } from '@/libs/markdown';
 import SidePanel from '@/components/explore/SidePanel';
@@ -18,9 +16,6 @@ import {
   MAX_ZOOM_MAP,
   MIN_ZOOM_MAP,
 } from '@/config/constants/general';
-import FoiVectorLayer from '@/components/explore/FoiVectorLayer';
-import HotSpotLegend from '@/components/explore/HotSpotLegend';
-import HeadMapLayer from '@/components/explore/HeadMapLayer';
 import DeckOverlay from '@/components/explore/DeckOverlay';
 import { buildCogLayer } from '@/components/explore/cogLayer';
 import PresenceLayer from '@/components/explore/PresenceLayer';
@@ -36,8 +31,6 @@ import { useAuth } from '@/store/auth';
 import PageTitle from '@/components/custom/PageTitle';
 import { buildPageTitle } from '@/config/constants/general';
 import { MAP_REGION_LABEL } from '@/config/constants/constants.explore';
-
-const BASENAME = (process.env.PUBLIC_URL || '').replace('//', '/');
 
 const initialViewState = {
   latitude: -19,
@@ -63,13 +56,11 @@ const Explore = ({ mddata }) => {
 
   const [viewState, setViewState] = useState({ ...initialViewState });
   const [filterTilesId, setFilterTilesId] = useState([]);
-  const [foiHotspot, setFoiHotspot] = useState(null);
   const [opacityFilter, setLayerStyle] = useState({});
 
   const [dataVirus, setDataVirus] = useState({});
   const [hasDeltaValue, setHasDeltaValue] = useState(false);
   const [dataFilter, setDataFilter] = useState({});
-  const [dataVirusSplit, setDataVirusSplit] = useState([]);
 
   const customJob = useCustomJob();
   const { customData } = customJob;
@@ -91,49 +82,6 @@ const Explore = ({ mddata }) => {
   }, [authStatus, customJobId]);
   const pointCount = customJob.points ? customJob.points.features.length : null;
   const showPointsHint = sidebarTab === SIDEBAR_TABS.RUN && !customData;
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `${BASENAME}/assets/data/hotspots.geojson.gz`,
-          {
-            responseType: 'arraybuffer',
-          }
-        );
-        const decompressed = pako.inflate(response.data, { to: 'string' });
-        const jsonDataMapp = JSON.parse(decompressed);
-
-        const combinations = getUniqueCombinations(
-          raw_data.filter((i) => i.virus && i.color_virus),
-          'virus',
-          'color_virus'
-        ).map((i) => ({
-          virus: i.virus,
-          color: i.color_virus,
-        }));
-        if (jsonDataMapp && jsonDataMapp.features) {
-          setFoiHotspot(jsonDataMapp);
-          const newFeatures = await Promise.all(
-            combinations.map(async (item) => ({
-              ...item,
-              data: {
-                type: 'FeatureCollection',
-                features: jsonDataMapp.features.filter(
-                  (i) => i.properties.virus === item.virus
-                ),
-              },
-            }))
-          );
-          setDataVirusSplit(newFeatures);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchData();
-  }, [raw_data]);
 
   const handleFilterTilesId = (data_filter) => {
     const raw_data_filter = dynamicFilter([...raw_data], { ...data_filter });
@@ -202,13 +150,13 @@ const Explore = ({ mddata }) => {
     })
   );
 
-  // A custom job's FOI outputs, per virus, following the Virus dropdown. They
-  // replace the catalog hotspots while it's loaded. Opacity keys: the virus
-  // name for hotspots (as the catalog hotspot legend), `<virus> FOI` for FOI.
-  const foiLayers = customJob.foiLayers.filter(
-    (i) => dataFilter.virus === ALL_VIRUS || dataFilter.virus === i.virus
-  );
-  const shownFoi = customJob.showFoi ? foiLayers : [];
+  // A custom job's FOI outputs, per virus, following the Virus dropdown.
+  // Opacity key: `<virus> FOI`.
+  const shownFoi = customJob.showFoi
+    ? customJob.foiLayers.filter(
+        (i) => dataFilter.virus === ALL_VIRUS || dataFilter.virus === i.virus
+      )
+    : [];
   const foiOpacityKey = (virus) => `${virus} FOI`;
   const foiDefaultOpacity =
     shownFoi.length > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
@@ -221,19 +169,6 @@ const Explore = ({ mddata }) => {
           item: { url: i.foiUrl, range: FOI_RANGE, color: i.color },
           opacity:
             (opacityFilter[foiOpacityKey(i.virus)] ?? foiDefaultOpacity) / 100,
-        })
-      ),
-    ...foiLayers
-      .filter((i) => i.hotspotUrl)
-      .map((i) =>
-        buildCogLayer({
-          item: {
-            url: i.hotspotUrl,
-            range: [0, 1],
-            color: i.color,
-            mask: true,
-          },
-          opacity: (opacityFilter[i.virus] ?? DEFAULT_OPACITY_MULTIPLE) / 100,
         })
       ),
   ];
@@ -255,27 +190,6 @@ const Explore = ({ mddata }) => {
     'title'
   );
 
-  const catalogLabelsHotSpot = sortList(
-    getUniqueCombinations(
-      raw_data
-        .filter((i) => i.virus && dataFilter.hotspot)
-        .filter((j) => {
-          if (dataFilter.virus === ALL_VIRUS) return true;
-          return dataFilter.virus === j.virus;
-        }),
-      'virus',
-      'color_virus'
-    ).map((i) => ({
-      title: i.virus,
-      color: i.color_virus,
-    })),
-    'title'
-  );
-  const labelsHotSpot = customData
-    ? foiLayers
-        .filter((i) => i.hotspotUrl)
-        .map((i) => ({ title: i.virus, color: i.color }))
-    : catalogLabelsHotSpot;
   return (
     <Flex
       position='relative'
@@ -323,21 +237,6 @@ const Explore = ({ mddata }) => {
               dragRotate={false}
               mapStyle={BASEMAP_STYLE}
             >
-              <FoiVectorLayer
-                jsonData={foiHotspot}
-                raw_data={raw_data}
-                hotspot={!customData && dataFilter.hotspot}
-                time_frame={dataFilter.time_frame}
-                virus={dataFilter.virus}
-                opacity_filter={opacityFilter}
-              />
-              <HeadMapLayer
-                dataVirusSplit={dataVirusSplit}
-                hotspot={!customData && dataFilter.hotspot}
-                time_frame={dataFilter.time_frame}
-                virus={dataFilter.virus}
-                opacity_filter={opacityFilter}
-              />
               <DeckOverlay layers={cogLayers} />
               <PresenceLayer data={customJob.points} />
             </Map>
@@ -396,11 +295,6 @@ const Explore = ({ mddata }) => {
             value={opacityFilter}
             heading={LEGEND_FOI_TITLE}
             ticks={LEGEND_FOI_TICKS}
-            handleChange={handleChangeLayerStyle}
-          />
-          <HotSpotLegend
-            labels={labelsHotSpot}
-            value={opacityFilter}
             handleChange={handleChangeLayerStyle}
           />
         </Box>
