@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '@/store/context';
-import FormControlCheckBoxSpecies from '@/components/custom/FormControlCheckBoxSpecies';
+import FormControlComboboxSpecies from '@/components/custom/FormControlComboboxSpecies';
+import FormControlComboboxVirus from '@/components/custom/FormControlComboboxVirus';
 import FormControlSelect from '@/components/custom/FormControlSelect';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
@@ -138,119 +139,66 @@ const Sidebar = ({
     });
   };
 
-  const handleVirusChange = (value) => {
-    let species = [];
-    if (showSdm) {
-      if (value === ALL_VIRUS) {
-        species = allSpecies.map((i) => i.name);
-      } else {
-        species = allSpecies.filter((i) => i.virus == value).map((i) => i.name);
-      }
-      setSelectedVirus(value);
-      setSelectedSpecies(species);
-
-      // update
-      handleFilterTilesId({
-        virus: value,
-        species: species,
-        time_frame: selectedTimeFrame,
-        model: selectedModel,
-      });
-    } else {
-      setSelectedVirus(value);
-      setSelectedSpecies([]);
-      handleFilterTilesId({
-        virus: value,
-        species: [],
-        time_frame: selectedTimeFrame,
-        model: '',
-      });
-    }
+  // While "Show SDM" is off the selections are kept but no SDM layers are
+  // requested, so toggling it back on restores them.
+  const updateTiles = ({
+    virus = selectedVirus,
+    species = selectedSpecies,
+    time_frame = selectedTimeFrame,
+    model = selectedModel,
+    sdm = showSdm,
+  }) => {
+    handleFilterTilesId({
+      virus,
+      species: sdm ? species : [],
+      time_frame,
+      model: sdm ? model : '',
+    });
   };
 
-  const handleSpeciesChange = (id) => {
-    let species = [...selectedSpecies];
-    if (species.includes(id)) {
-      species = species.filter((i) => id !== i);
+  const handleVirusChange = (value) => {
+    let species = [];
+    if (value === ALL_VIRUS) {
+      species = allSpecies.map((i) => i.name);
     } else {
-      species.push(id);
+      species = allSpecies
+        .filter((i) => (i.virus || []).includes(value))
+        .map((i) => i.name);
     }
+    setSelectedVirus(value);
+    setSelectedSpecies(species);
+    updateTiles({ virus: value, species });
+  };
 
+  const handleSpeciesChange = (species) => {
     setSelectedSpecies([...species]);
-
-    // update
-    handleFilterTilesId({
-      virus: selectedVirus,
-      species: [...species],
-      time_frame: selectedTimeFrame,
-      model: selectedModel,
-    });
+    updateTiles({ species: [...species] });
   };
 
   const handleTimeFrameChange = (value) => {
     setSelectedTimeFrame(value);
-    // update
-    handleFilterTilesId({
-      virus: selectedVirus,
-      species: selectedSpecies,
-      time_frame: value,
-      model: selectedModel,
-    });
+    updateTiles({ time_frame: value });
   };
 
   const handleModelChange = (model) => {
     setSelectedModel(model);
-    // update State
-    handleFilterTilesId({
-      virus: selectedVirus,
-      species: selectedSpecies,
-      time_frame: selectedTimeFrame,
-      model,
-    });
+    updateTiles({ model });
   };
 
   const handleSdmToggle = () => {
     const newShowSdm = !showSdm;
     setShowSdm(newShowSdm);
-
-    if (newShowSdm) {
-      let species = [];
-      if (selectedVirus === ALL_VIRUS) {
-        species = allSpecies.map((i) => i.name);
-      } else {
-        species = allSpecies
-          .filter((i) => i.virus == selectedVirus)
-          .map((i) => i.name);
-      }
-      setSelectedSpecies(species);
-      setSelectedModel(DEFAULT_MODEL);
-
-      handleFilterTilesId({
-        virus: selectedVirus,
-        species: species,
-        time_frame: selectedTimeFrame,
-        model: DEFAULT_MODEL,
-      });
-    } else {
-      setSelectedSpecies([]);
-      setSelectedModel('');
-
-      handleFilterTilesId({
-        virus: selectedVirus,
-        species: [],
-        time_frame: selectedTimeFrame,
-        model: '',
-      });
-    }
+    updateTiles({ sdm: newShowSdm });
   };
 
   const exploreControls = (
     <>
-      <FormControlSelect
+      <FormControlComboboxVirus
         label={VIRUS_LABEL}
         options={allVirus}
         info={VIRUS_INFO}
         value={selectedVirus}
+        defaultValue={ALL_VIRUS}
         handleAction={handleVirusChange}
       />
 
@@ -274,7 +222,7 @@ const Sidebar = ({
         value={showSdm}
         handleAction={handleSdmToggle}
       />
-      <FormControlCheckBoxSpecies
+      <FormControlComboboxSpecies
         label={SPECIES_LABEL}
         options={allSpecies}
         info={SPECIES_INFO}
