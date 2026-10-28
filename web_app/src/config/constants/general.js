@@ -187,6 +187,20 @@ export const MAP_COLORS = {
   purple: ['#E9D8FD', '#B794F4', '#805AD5', '#553C9A', '#322659'],
   pink: ['#FED7E2', '#F687B3', '#D53F8C', '#97266D', '#521B41'],
 };
+// Ramps handed out, in order, to layers shown together that have no catalog
+// colour or would repeat one (see distinctColors). Neighbours differ in hue.
+export const FALLBACK_COLOR_ORDER = [
+  'default',
+  'orange',
+  'purple',
+  'pink',
+  'teal',
+  'red',
+  'blue',
+  'yellow',
+  'cyan',
+  'green',
+];
 // DEFAULT VALUES
 export const ALL_VIRUS = 'All (combined)';
 export const DEFAULT_TIME = 'Current (year 1990-2010)';
@@ -218,8 +232,3 @@ export const BASEMAP_STYLE = 'https://tiles.openfreemap.org/styles/positron';
 // ZOOM VALUES
 export const MIN_ZOOM_MAP = 2;
 export const MAX_ZOOM_MAP = 11;
-
-export const MIN_ZOOM_HOTSPOT = 8;
-export const MAX_ZOOM_HOTSPOT = MAX_ZOOM_MAP + 0.5;
-export const MIN_ZOOM_HOTSPOT_HEADMAP = MIN_ZOOM_MAP - 0.5;
-export const MAX_ZOOM_HOTSPOT_HEADMAP = MIN_ZOOM_HOTSPOT + 1;

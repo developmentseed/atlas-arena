@@ -111,7 +111,7 @@ const Sidebar = ({
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
-  const [selectedHotSpot, setSelectedHotSpot] = useState(DEFAULT_SDM_TOGGLE);
+  const [showSdm, setShowSdm] = useState(DEFAULT_SDM_TOGGLE);
 
   useEffect(() => {
     const tmpSpecies = allSpecies.map((i) => i.name);
@@ -124,19 +124,18 @@ const Sidebar = ({
     );
   }, [allVirus]);
   // actions
-  const handleSetDefault = (virus, species, time_frame, model, hotspot) => {
+  const handleSetDefault = (virus, species, time_frame, model, sdm) => {
     setSelectedVirus(virus);
     setSelectedSpecies(species);
     setSelectedTimeFrame(time_frame);
     setSelectedModel(model);
-    setSelectedHotSpot(hotspot);
+    setShowSdm(sdm);
 
     handleFilterTilesId({
       virus,
       species,
       time_frame,
       model,
-      hotspot,
     });
   };
 
@@ -147,14 +146,13 @@ const Sidebar = ({
     species = selectedSpecies,
     time_frame = selectedTimeFrame,
     model = selectedModel,
-    hotspot = selectedHotSpot,
+    sdm = showSdm,
   }) => {
     handleFilterTilesId({
       virus,
-      species: hotspot ? species : [],
+      species: sdm ? species : [],
       time_frame,
-      model: hotspot ? model : '',
-      hotspot: true,
+      model: sdm ? model : '',
     });
   };
 
@@ -187,10 +185,10 @@ const Sidebar = ({
     updateTiles({ model });
   };
 
-  const handleHotSpotChange = () => {
-    const newHotSpot = !selectedHotSpot;
-    setSelectedHotSpot(newHotSpot);
-    updateTiles({ hotspot: newHotSpot });
+  const handleSdmToggle = () => {
+    const newShowSdm = !showSdm;
+    setShowSdm(newShowSdm);
+    updateTiles({ sdm: newShowSdm });
   };
 
   const exploreControls = (
@@ -221,8 +219,8 @@ const Sidebar = ({
       />
       <FormControlSwitch
         label={SDM_TOGGLE_LABEL}
-        value={selectedHotSpot}
-        handleAction={handleHotSpotChange}
+        value={showSdm}
+        handleAction={handleSdmToggle}
       />
       <FormControlComboboxSpecies
         label={SPECIES_LABEL}
@@ -231,7 +229,7 @@ const Sidebar = ({
         values={selectedSpecies}
         handleAction={handleSpeciesChange}
         filterValue={selectedVirus}
-        isDisabled={!selectedHotSpot}
+        isDisabled={!showSdm}
         isLocked={!!customData}
         notice={
           customData && customData.species
@@ -246,7 +244,7 @@ const Sidebar = ({
         info={MODEL_INFO}
         value={selectedModel}
         handleAction={handleModelChange}
-        isDisabled={!selectedHotSpot}
+        isDisabled={!showSdm}
         isLocked={!!customData}
         describedBy={CUSTOM_DATA_NOTICE_ID}
       />
