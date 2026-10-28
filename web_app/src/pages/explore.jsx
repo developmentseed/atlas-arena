@@ -173,9 +173,7 @@ const Explore = ({ mddata }) => {
             species: customData.species,
             url: customJob.rasterUrl,
             range: customJob.isDelta ? [-1, 1] : [0, 1],
-            color: (
-              raw_data.find((i) => i.species === customData.species) || {}
-            ).color,
+            color: customJob.speciesColor,
           },
         ]
       : [];
