@@ -111,6 +111,24 @@ export const DOWNLOAD_RESULTS = 'Download results';
 export const DOWNLOAD_ERROR_TITLE = 'Download failed';
 export const DOWNLOAD_ERROR_TEXT =
   'We couldn’t download the results. Please try again.';
+// CUSTOM JOB METRICS (sidebar, once a run has succeeded)
+export const METRICS_PERFORMANCE_LABEL = 'Model performance';
+export const METRICS_IMPORTANCE_LABEL = 'Feature importance';
+export const METRICS_LOADING = 'Loading model metrics';
+export const METRICS_ERROR = 'We couldn’t load the model metrics.';
+export const METRICS_SHOW_ALL = 'Show all features';
+export const METRICS_SHOW_FEWER = 'Show fewer features';
+export const METRICS_SPLITS = [
+  { prefix: 'test', label: 'Held-out test' },
+  { prefix: 'cv', label: 'Cross-validation' },
+];
+export const METRICS_NAMES = {
+  accuracy: 'Accuracy',
+  precision: 'Precision',
+  recall: 'Recall',
+  auc_roc: 'AUC-ROC',
+};
+export const METRICS_MODEL_NAMES = { rf: 'Random forest', et: 'Extra trees' };
 // CUSTOM JOB STATUS (sidebar, while custom data is loaded)
 export const JOB_STATUS_TEXT = {
   LOADING: 'Loading model run',
