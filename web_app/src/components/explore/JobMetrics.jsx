@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Box, Button, Flex, Heading, Table, Text } from '@chakra-ui/react';
-import { useJobMetrics } from '@/components/explore/useJobMetrics';
 import {
   METRICS_PERFORMANCE_LABEL,
   METRICS_IMPORTANCE_LABEL,
@@ -14,7 +13,8 @@ import {
 } from '@/config/constants/constants.explore';
 
 // Basic display of a finished run's stats, for restyling: all the data comes
-// from useJobMetrics, and this file only decides how it looks.
+// from useJobMetrics (called by MetricsPanel), and this file only decides how
+// it looks.
 
 const TOP_FEATURES = 10;
 
@@ -28,7 +28,7 @@ const formatStat = ({ mean, std } = {}, digits = 2) => {
 
 const SectionHeading = ({ children }) => (
   <Heading
-    as='h2'
+    as='h3'
     fontSize='xs'
     fontWeight={600}
     letterSpacing='0.5px'
@@ -80,7 +80,7 @@ const ImportanceBars = ({ model, rows }) => {
   const max = rows[0]?.mean || 1;
   return (
     <Box>
-      <Text as='h3' fontSize='xs' fontWeight={600} color='gray.700' mb={1}>
+      <Text as='h4' fontSize='xs' fontWeight={600} color='gray.700' mb={1}>
         {modelName(model)}
       </Text>
       <Flex as='ul' direction='column' gap='2px' listStyleType='none'>
@@ -114,8 +114,8 @@ const ImportanceBars = ({ model, rows }) => {
   );
 };
 
-const JobMetrics = ({ jobId }) => {
-  const { metrics, loading, error } = useJobMetrics(jobId);
+// metrics / loading / error: useJobMetrics' state.
+const JobMetrics = ({ metrics, loading, error }) => {
   const [showAll, setShowAll] = useState(false);
 
   if (loading || error) {
