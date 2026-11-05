@@ -1,8 +1,19 @@
 import catalog from '@/config/catalog.json';
-import { FALLBACK_COLOR_ORDER } from '@/config/constants/general';
+import {
+  ALL_VIRUS,
+  DEFAULT_MODEL,
+  DEFAULT_TIME,
+  FALLBACK_COLOR_ORDER,
+} from '@/config/constants/general';
 
 // Flatten the catalog into the row shape the store and filters already use
 // (display names for virus/species/time_frame/model, plus colours).
+// FOI scales differ by ~50x between viruses, so a virus may carry its own
+// `foi_range`; everything else uses the variable's range.
+const layerRange = (layer) =>
+  (layer.variable === 'foi' && catalog.viruses[layer.virus].foi_range) ||
+  catalog.variables[layer.variable].range;
+
 export const getCatalogRows = () => {
   const { cog_base_url, viruses, species, time_frames, models, variables } =
     catalog;
@@ -15,7 +26,7 @@ export const getCatalogRows = () => {
       time_frame: time_frames[layer.time_frame].name,
       model: models[layer.model].name,
       variable: layer.variable,
-      range: variables[layer.variable].range,
+      range: layerRange(layer),
       url: `${cog_base_url}${layer.path}`,
       color: species[layer.species].color,
       color_virus: viruses[layer.virus].color,
@@ -70,3 +81,23 @@ export const distinctColors = (requested) => {
 };
 
 export const FOI_RANGE = catalog.variables.foi.range;
+
+// The Explore tab's initial selection, from catalog.json's `defaults` block, as
+// display names. Edit that block to change what loads first: `virus` null means
+// all viruses; `species` are catalog keys (unknown ones are ignored, and an
+// empty list selects every species).
+export const getCatalogDefaults = () => {
+  const defaults = catalog.defaults || {};
+  const species = (defaults.species || [])
+    .map((key) => catalog.species[key]?.name)
+    .filter(Boolean);
+  return {
+    virus: catalog.viruses[defaults.virus]?.name || ALL_VIRUS,
+    species: species.length ? species : null,
+    // Not configurable: FormControlRadioTime always starts on DEFAULT_TIME.
+    time_frame: DEFAULT_TIME,
+    model: catalog.models[defaults.model]?.name || DEFAULT_MODEL,
+    showSdm: defaults.show_sdm ?? true,
+    showFoi: defaults.show_foi ?? true,
+  };
+};
