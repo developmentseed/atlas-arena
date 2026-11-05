@@ -43,7 +43,7 @@ const SectionHeading = ({ children }) => (
 // One table per split (held-out test, cross-validation): a row per metric, a
 // column per model.
 const PerformanceTable = ({ models, split }) => (
-  <Table.Root size='sm' aria-label={split.label}>
+  <Table.Root size='sm' textStyle='xs' aria-label={split.label}>
     <Table.Header>
       <Table.Row>
         <Table.ColumnHeader px={1}>{split.label}</Table.ColumnHeader>
