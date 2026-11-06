@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FOI_PARAMS_URL } from '@/config/constants/general';
+import { parseRows, toNumber } from '@/libs/csv';
 
 // Force-of-infection parameters per species/virus pair, from the FOI params
 // CSV on S3 (FOI_PARAMS_URL; columns Species, Virus, Prevalence, Test, K_min,
@@ -7,27 +8,6 @@ import { FOI_PARAMS_URL } from '@/config/constants/general';
 // can be updated without a deploy. Model runs send the averaged values for the
 // chosen pathogens, so the API never reads the table itself. Values the table
 // has no estimate for ('NA') are entered by the user instead.
-
-const parseRows = (text) => {
-  // The file may start with a UTF-8 BOM (saved from Excel).
-  const [header, ...lines] = text
-    .replace(/^\uFEFF/, '')
-    .trim()
-    .split(/\r?\n/)
-    .filter((line) => line.trim());
-  const columns = header.split(',').map((c) => c.replace(/"/g, '').trim());
-  return lines.map((line) => {
-    const values = line.split(',').map((v) => v.replace(/"/g, '').trim());
-    return Object.fromEntries(columns.map((c, i) => [c, values[i]]));
-  });
-};
-
-// A number, or null for 'NA', blank or anything else non-numeric.
-const toNumber = (value) => {
-  if (value == null || String(value).trim() === '') return null;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-};
 
 const mean = (values) => values.reduce((a, b) => a + b, 0) / values.length;
 

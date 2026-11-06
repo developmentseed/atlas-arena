@@ -28,7 +28,7 @@ import { LuCheck, LuDownload, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
 import { useAuth } from '@/store/auth';
 import { speciesKey, useFoiParams } from '@/libs/foiParams';
-import { downloadJobRasters } from '@/libs/jobs';
+import { downloadJobResults } from '@/libs/jobs';
 import { toaster } from '@/components/ui/toaster';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
@@ -359,7 +359,7 @@ const RunModelsPanel = ({
   const handleDownload = async () => {
     setDownloading(true);
     try {
-      await downloadJobRasters(customData.jobId);
+      await downloadJobResults(customData.jobId);
     } catch {
       toaster.create({
         type: 'error',
