@@ -111,7 +111,10 @@ export const DOWNLOAD_RESULTS = 'Download results';
 export const DOWNLOAD_ERROR_TITLE = 'Download failed';
 export const DOWNLOAD_ERROR_TEXT =
   'We couldn’t download the results. Please try again.';
-// CUSTOM JOB METRICS (sidebar, once a run has succeeded)
+// CUSTOM JOB METRICS (right-hand panel, once a run has succeeded)
+export const METRICS_PANEL_TITLE = 'Model metrics';
+export const METRICS_PANEL_SHOW = 'Show model metrics';
+export const METRICS_PANEL_HIDE = 'Hide model metrics';
 export const METRICS_PERFORMANCE_LABEL = 'Model performance';
 export const METRICS_IMPORTANCE_LABEL = 'Feature importance';
 export const METRICS_LOADING = 'Loading model metrics';

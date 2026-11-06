@@ -30,7 +30,6 @@ import { useAuth } from '@/store/auth';
 import { speciesKey, useFoiParams } from '@/libs/foiParams';
 import { downloadJobResults } from '@/libs/jobs';
 import { toaster } from '@/components/ui/toaster';
-import JobMetrics from '@/components/explore/JobMetrics';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
 import {
@@ -456,7 +455,6 @@ const RunModelsPanel = ({
             )}
           </Box>
         )}
-        <JobMetrics jobId={customData.jobId} />
         <Button
           mt='auto'
           variant='solid'
