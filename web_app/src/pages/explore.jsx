@@ -21,7 +21,7 @@ import DeckOverlay from '@/components/explore/DeckOverlay';
 import { buildCogLayer } from '@/components/explore/cogLayer';
 import PresenceLayer from '@/components/explore/PresenceLayer';
 import { useCustomJob } from '@/components/explore/useCustomJob';
-import { FOI_RANGE } from '@/libs/catalog';
+import { FOI_RANGE, distinctColors } from '@/libs/catalog';
 import {
   LEGEND_FOI_TITLE,
   LEGEND_FOI_TICKS,
@@ -57,6 +57,7 @@ const Explore = ({ mddata }) => {
 
   const [viewState, setViewState] = useState({ ...initialViewState });
   const [filterTilesId, setFilterTilesId] = useState([]);
+  const [catalogFoiRows, setCatalogFoiRows] = useState([]);
   const [opacityFilter, setLayerStyle] = useState({});
 
   const [dataVirus, setDataVirus] = useState({});
@@ -85,7 +86,24 @@ const Explore = ({ mddata }) => {
   const showPointsHint = sidebarTab === SIDEBAR_TABS.RUN && !customData;
 
   const handleFilterTilesId = (data_filter) => {
-    const raw_data_filter = dynamicFilter([...raw_data], { ...data_filter });
+    // A species hosting several viruses has one SDM row per virus, all with
+    // the same raster: under "All (combined)" draw it once.
+    const seenUrls = new Set();
+    const raw_data_filter = dynamicFilter(
+      raw_data.filter((i) => i.variable !== 'foi'),
+      { ...data_filter }
+    ).filter((i) => !seenUrls.has(i.url) && seenUrls.add(i.url));
+    // FOI follows the same virus/species/scenario but not the model.
+    setCatalogFoiRows(
+      dynamicFilter(
+        raw_data.filter((i) => i.variable === 'foi'),
+        {
+          virus: data_filter.virus,
+          species: data_filter.foi_species || [],
+          time_frame: data_filter.time_frame,
+        }
+      )
+    );
     const hasDelta =
       data_filter &&
       data_filter.time_frame &&
@@ -126,7 +144,37 @@ const Explore = ({ mddata }) => {
           },
         ]
       : [];
-  const sdmItems = customData ? customItems : filterTilesId;
+  // Catalog FOI is hidden while a model run is shown: the run brings its own.
+  const catalogFoi = customData ? [] : catalogFoiRows;
+  const catalogFoiViruses = [...new Set(catalogFoi.map((i) => i.virus))].sort();
+
+  // One ramp per species and per FOI virus on the map, no two alike: most
+  // catalog species have no colour of their own.
+  const catalogSpecies = customData
+    ? []
+    : [...new Set(filterTilesId.map((i) => i.species))].sort();
+  const firstOf = (rows, key, value) => rows.find((i) => i[key] === value);
+  const rampColors = distinctColors([
+    ...catalogSpecies.map(
+      (name) => firstOf(filterTilesId, 'species', name).color
+    ),
+    ...catalogFoiViruses.map(
+      (name) => firstOf(catalogFoi, 'virus', name).color_virus
+    ),
+  ]);
+  const speciesRamp = Object.fromEntries(
+    catalogSpecies.map((name, i) => [name, rampColors[i]])
+  );
+  const virusRamp = Object.fromEntries(
+    catalogFoiViruses.map((name, i) => [
+      name,
+      rampColors[catalogSpecies.length + i],
+    ])
+  );
+
+  const sdmItems = customData
+    ? customItems
+    : filterTilesId.map((i) => ({ ...i, color: speciesRamp[i.species] }));
 
   // Same default as the legend's opacity slider (SDMLegend's has_many).
   const speciesCount = new Set(sdmItems.map((i) => i.species)).size;
@@ -161,8 +209,31 @@ const Explore = ({ mddata }) => {
   const foiOpacityKey = (virus) => `${virus} FOI`;
   const foiDefaultOpacity =
     shownFoi.length > 1 ? DEFAULT_OPACITY_MULTIPLE : DEFAULT_OPACITY_SINGLE;
+  const catalogFoiLayers = catalogFoi.map((i) =>
+    buildCogLayer({
+      item: { url: i.url, range: i.range, color: virusRamp[i.virus] },
+      opacity:
+        (opacityFilter[foiOpacityKey(i.virus)] ??
+          (catalogFoiViruses.length > 1
+            ? DEFAULT_OPACITY_MULTIPLE
+            : DEFAULT_OPACITY_SINGLE)) / 100,
+    })
+  );
+  // One legend row per virus, each on that virus's FOI range.
+  const formatTick = (value) => `${Number(value.toPrecision(3))}`;
+  const labelsCatalogFoi = catalogFoiViruses.map((name) => {
+    const [min, max] = firstOf(catalogFoi, 'virus', name).range;
+    return {
+      title: foiOpacityKey(name),
+      name,
+      color: virusRamp[name],
+      ticks: [min, (min + max) / 2, max].map(formatTick),
+    };
+  });
+
   const cogLayers = [
     ...sdmLayers,
+    ...catalogFoiLayers,
     ...shownFoi
       .filter((i) => i.foiUrl)
       .map((i) =>
@@ -296,6 +367,12 @@ const Explore = ({ mddata }) => {
             value={opacityFilter}
             heading={LEGEND_FOI_TITLE}
             ticks={LEGEND_FOI_TICKS}
+            handleChange={handleChangeLayerStyle}
+          />
+          <SDMLegend
+            labels={labelsCatalogFoi}
+            value={opacityFilter}
+            heading={LEGEND_FOI_TITLE}
             handleChange={handleChangeLayerStyle}
           />
         </Box>

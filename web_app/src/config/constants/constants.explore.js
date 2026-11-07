@@ -17,6 +17,7 @@ export const TIMEFRAME_INFO = 'Shared Socio-economic Pathways (SSPs)';
 
 // RODENT DISTRIBUTION
 export const SDM_TOGGLE_LABEL = 'Show Species Distribution Maps';
+export const FOI_TOGGLE_LABEL = 'Show Force of Infection';
 
 // SPECIES
 export const SPECIES_LABEL = 'Reservoir Species';
@@ -46,7 +47,7 @@ export const TAB_RUN_SIGNED_OUT = 'Log in to run custom models';
 export const CUSTOM_DATA_NOTICE = (species = '') =>
   `Results for ${species} are based on your uploaded data`;
 export const RUN_DESCRIPTION =
-  "Upload presence points for one species. Points are linked to known zoonotic hantaviruses and arenaviruses to generate species distribution models (SDMs) and force-of-infection (FOI) hazard layers.";
+  'Upload presence points for one species. Points are linked to known zoonotic hantaviruses and arenaviruses to generate species distribution models (SDMs) and force-of-infection (FOI) hazard layers.';
 export const RUN_STEP_UPLOAD = 'Upload presence data';
 export const RUN_SINGLE_SPECIES = 'Please upload a single species only.';
 export const RUN_STEP_SPECIES = 'Species';
