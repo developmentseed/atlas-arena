@@ -39,6 +39,7 @@ import { downloadJobResults } from '@/libs/jobs';
 import { toaster } from '@/components/ui/toaster';
 import FormControlRadioTime from '@/components/custom/FormControlRadioTime';
 import FormControlSwitch from '@/components/custom/FormControlSwitch';
+import ComboboxSingle from '@/components/custom/ComboboxSingle';
 import {
   TIMEFRAME_LABEL,
   TIMEFRAME_INFO,
@@ -47,6 +48,7 @@ import {
   RUN_STEP_SPECIES,
   RUN_STEP_PATHOGEN,
   RUN_PATHOGEN_BADGE,
+  RUN_PATHOGEN_NO_SPECIES,
   RUN_PREVALENCE_LABEL,
   RUN_PREVALENCE_HINT,
   RUN_PREVALENCE_ERROR,
@@ -57,6 +59,11 @@ import {
   RUN_K_ERROR,
   RUN_K_ORDER_ERROR,
   RUN_SPECIES_LOADING,
+  RUN_SPECIES_PLACEHOLDER,
+  RUN_SPECIES_EMPTY,
+  RUN_SPECIES_DETECTED,
+  RUN_SPECIES_DETECTED_CHANGED,
+  RUN_SPECIES_NOT_DETECTED,
   RUN_SPECIES_ERROR_TITLE,
   RUN_SPECIES_ERROR_TEXT,
   RUN_STEP_MODEL,
@@ -178,6 +185,40 @@ const checkEntered = (entered, missing) => {
   return { ...errors, complete };
 };
 
+// Under the species picker once a file is picked: whether its layer name
+// matched a species, and whether the pick still is that species. Helper text
+// of the step's Field, so screen readers hear it with the picker.
+const SpeciesDetection = ({ detected, selectedSpecies, speciesName }) => {
+  if (!detected.key) {
+    return (
+      <Field.HelperText m={0} fontSize='xs' color='gray.600'>
+        {RUN_SPECIES_NOT_DETECTED}
+      </Field.HelperText>
+    );
+  }
+  if (detected.key !== selectedSpecies) {
+    return (
+      <Field.HelperText m={0} fontSize='xs' color='gray.600'>
+        {RUN_SPECIES_DETECTED_CHANGED(speciesName(detected.key))}
+      </Field.HelperText>
+    );
+  }
+  return (
+    <Field.HelperText
+      m={0}
+      display='flex'
+      alignItems='center'
+      gap={1}
+      fontSize='xs'
+      fontWeight={500}
+      color='green.700'
+    >
+      <Icon as={LuCheck} boxSize={3} aria-hidden='true' />
+      {RUN_SPECIES_DETECTED}
+    </Field.HelperText>
+  );
+};
+
 const fieldStep =
   (props = {}) =>
   (body) => (
@@ -234,6 +275,9 @@ const RunModelsPanel = ({
   const allSpecies = foiParams ? foiParams.species : [];
 
   const [species, setSpecies] = useState('');
+  // The species matched from the picked file's layer name: { key } (key is
+  // null when the file names no known species), or null without a file.
+  const [detected, setDetected] = useState(null);
   // The checked pathogens, or null for all of the species' viruses.
   const [checkedPathogens, setCheckedPathogens] = useState(null);
   const [entered, setEntered] = useState(NO_ENTERED);
@@ -263,11 +307,9 @@ const RunModelsPanel = ({
   });
   const file = fileUpload.acceptedFiles[0] || null;
 
+  // No default species: it comes from the file, the user, or a loaded run.
   const selectedSpecies =
-    species ||
-    speciesKey(customData && customData.species) ||
-    (allSpecies[0] && allSpecies[0].key) ||
-    '';
+    species || speciesKey(customData && customData.species) || '';
   const selectedModel = model || (allModels[0] && allModels[0].key) || '';
   const speciesViruses = foiParams ? foiParams.virusesFor(selectedSpecies) : [];
   const speciesName = (key) =>
@@ -303,7 +345,13 @@ const RunModelsPanel = ({
   // Pre-select the species a picked file's layer name refers to (also once
   // the species list arrives, if the file was picked first).
   useEffect(() => {
-    const key = foiParams && foiParams.match(previewName);
+    if (!previewName) {
+      setDetected(null);
+      return;
+    }
+    if (!foiParams) return;
+    const key = foiParams.match(previewName);
+    setDetected({ key });
     if (!key) return;
     setSpecies(key);
     setCheckedPathogens(null);
@@ -320,7 +368,14 @@ const RunModelsPanel = ({
   }, [customData]);
 
   const handleRun = async () => {
-    if (!onUpload || !file || !foiParams || !enteredErrors.complete) return;
+    if (
+      !onUpload ||
+      !file ||
+      !selectedSpecies ||
+      !foiParams ||
+      !enteredErrors.complete
+    )
+      return;
     setStatus(STATUS.UPLOADING);
     try {
       const result = await onUpload({
@@ -523,7 +578,8 @@ const RunModelsPanel = ({
     );
   }
 
-  const canSubmit = file && !isFormDisabled && enteredErrors.complete;
+  const canSubmit =
+    file && selectedSpecies && !isFormDisabled && enteredErrors.complete;
 
   const statusText = isUploading
     ? UPLOAD_IN_PROGRESS
@@ -638,23 +694,24 @@ const RunModelsPanel = ({
           }
           wrap={fieldStep()}
         >
-          <NativeSelect.Root>
-            <NativeSelect.Field
-              disabled={isFormDisabled}
-              bg='white'
-              borderColor='gray.300'
-              value={selectedSpecies}
-              onChange={(event) => selectSpecies(event.target.value)}
-            >
-              {!foiParams && <option value=''>{RUN_SPECIES_LOADING}</option>}
-              {allSpecies.map((item) => (
-                <option key={item.key} value={item.key}>
-                  {item.name}
-                </option>
-              ))}
-            </NativeSelect.Field>
-            <NativeSelect.Indicator />
-          </NativeSelect.Root>
+          <ComboboxSingle
+            options={allSpecies}
+            value={selectedSpecies}
+            handleAction={selectSpecies}
+            placeholder={
+              foiParams ? RUN_SPECIES_PLACEHOLDER : RUN_SPECIES_LOADING
+            }
+            emptyText={RUN_SPECIES_EMPTY}
+            isDisabled={isFormDisabled}
+            inputProps={{ borderColor: 'gray.300' }}
+          />
+          {detected && (
+            <SpeciesDetection
+              detected={detected}
+              selectedSpecies={selectedSpecies}
+              speciesName={speciesName}
+            />
+          )}
         </Step>
 
         <Step
@@ -664,7 +721,7 @@ const RunModelsPanel = ({
               {RUN_STEP_PATHOGEN}
             </Text>
           }
-          badge={RUN_PATHOGEN_BADGE}
+          badge={selectedSpecies ? RUN_PATHOGEN_BADGE : null}
           // A plain group, not a Field: checkboxes inside a Field take its
           // ids, so they would all share one input id and label.
           wrap={(body) => (
@@ -716,7 +773,14 @@ const RunModelsPanel = ({
                 )}
               </Stack>
             ))}
-            {!speciesViruses.length && <Text fontSize='sm'>—</Text>}
+            {!selectedSpecies && (
+              <Text fontSize='sm' color='gray.600'>
+                {RUN_PATHOGEN_NO_SPECIES}
+              </Text>
+            )}
+            {selectedSpecies && !speciesViruses.length && (
+              <Text fontSize='sm'>—</Text>
+            )}
           </Stack>
           {missing.k && (
             <Box role='group' aria-labelledby={kHeadingId}>

@@ -72,6 +72,14 @@ export const RUN_K_HINT = (minRange, maxRange) =>
 export const RUN_K_ERROR = 'Enter a number of 0 or more.';
 export const RUN_K_ORDER_ERROR = 'Max must be at least min.';
 export const RUN_SPECIES_LOADING = 'Loading species…';
+export const RUN_SPECIES_PLACEHOLDER = 'Select or search for a species';
+export const RUN_PATHOGEN_NO_SPECIES = 'Choose a species first.';
+export const RUN_SPECIES_EMPTY = 'No matching species';
+export const RUN_SPECIES_DETECTED = 'Detected from your file';
+export const RUN_SPECIES_DETECTED_CHANGED = (name) =>
+  `Your file suggested ${name}`;
+export const RUN_SPECIES_NOT_DETECTED =
+  'We couldn’t detect the species from your file. Choose it from the list.';
 export const RUN_SPECIES_ERROR_TITLE = 'Couldn’t load species list';
 export const RUN_SPECIES_ERROR_TEXT =
   'Species and pathogen parameters are unavailable. Reload the page to try again.';
