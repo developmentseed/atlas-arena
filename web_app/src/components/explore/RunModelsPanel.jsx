@@ -24,7 +24,14 @@ import {
   useFileUpload,
   VisuallyHidden,
 } from '@chakra-ui/react';
-import { LuCheck, LuDownload, LuInfo, LuLink, LuUpload } from 'react-icons/lu';
+import {
+  LuCheck,
+  LuDownload,
+  LuInfo,
+  LuLink,
+  LuUpload,
+  LuX,
+} from 'react-icons/lu';
 import { useAppContext } from '@/store/context';
 import { useAuth } from '@/store/auth';
 import { speciesKey, useFoiParams } from '@/libs/foiParams';
@@ -70,6 +77,7 @@ import {
   RESULTS_POINTS,
   MAP_LAYERS_LABEL,
   UPLOAD_NEW_DATASET,
+  CLEAR_UPLOADED_DATA,
   DOWNLOAD_RESULTS,
   DOWNLOAD_ERROR_TITLE,
   DOWNLOAD_ERROR_TEXT,
@@ -205,6 +213,7 @@ const RunModelsPanel = ({
   onUploadSuccess = null,
   onFileChange = null,
   onClearCustomData = null,
+  onClearToExplore = null,
   previewCount = null,
   previewName = null,
   linkedViruses = [],
@@ -347,11 +356,24 @@ const RunModelsPanel = ({
     }
   };
 
-  const handleNewDataset = () => {
+  const resetForm = () => {
     fileUpload.clearFiles();
     selectSpecies('');
     setPointCount(null);
     setStatus(STATUS.IDLE);
+  };
+
+  // The run can also be cleared from the Explore tab (this panel stays
+  // mounted), so the form resets whenever the loaded run goes away.
+  const loadedJobId = customData ? customData.jobId : null;
+  const prevJobId = useRef(loadedJobId);
+  useEffect(() => {
+    if (prevJobId.current && !loadedJobId) resetForm();
+    prevJobId.current = loadedJobId;
+  }, [loadedJobId]);
+
+  const handleNewDataset = () => {
+    resetForm();
     focusDropzoneOnReset.current = true;
     if (onClearCustomData) onClearCustomData();
   };
@@ -474,6 +496,16 @@ const RunModelsPanel = ({
             onClick={handleNewDataset}
           >
             {UPLOAD_NEW_DATASET}
+          </Button>
+        )}
+        {onClearToExplore && (
+          <Button
+            variant='ghost'
+            colorPalette='blue'
+            onClick={onClearToExplore}
+          >
+            <Icon as={LuX} aria-hidden='true' />
+            {CLEAR_UPLOADED_DATA}
           </Button>
         )}
       </Flex>

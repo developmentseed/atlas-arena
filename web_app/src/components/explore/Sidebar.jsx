@@ -24,6 +24,7 @@ import {
   LuPanelLeftClose,
   LuPanelLeftOpen,
   LuSlidersHorizontal,
+  LuX,
 } from 'react-icons/lu';
 
 import {
@@ -45,6 +46,7 @@ import {
   MODEL_LABEL,
   MODEL_INFO,
   CUSTOM_DATA_NOTICE,
+  CLEAR_UPLOADED_DATA,
   TAB_EXPLORE,
   TAB_RUN,
   TAB_RUN_SIGNED_OUT,
@@ -191,6 +193,11 @@ const Sidebar = ({
     updateTiles({ sdm: newShowSdm });
   };
 
+  const handleClearToExplore = () => {
+    onClearCustomData();
+    onTabChange(SIDEBAR_TABS.EXPLORE);
+  };
+
   const exploreControls = (
     <>
       <FormControlComboboxVirus
@@ -248,6 +255,17 @@ const Sidebar = ({
         isLocked={!!customData}
         describedBy={CUSTOM_DATA_NOTICE_ID}
       />
+      {customData && onClearCustomData && (
+        <Button
+          mt='auto'
+          variant='ghost'
+          colorPalette='blue'
+          onClick={onClearCustomData}
+        >
+          <LuX aria-hidden='true' />
+          {CLEAR_UPLOADED_DATA}
+        </Button>
+      )}
     </>
   );
 
@@ -306,7 +324,13 @@ const Sidebar = ({
           )}
           <Tabs.Indicator rounded='l2' />
         </Tabs.List>
-        <Tabs.Content value={SIDEBAR_TABS.EXPLORE} pt={1}>
+        <Tabs.Content
+          value={SIDEBAR_TABS.EXPLORE}
+          flex={1}
+          pt={1}
+          flexDirection='column'
+          css={{ '&:not([hidden])': { display: 'flex' } }}
+        >
           <FormControlText label={SIDEBAR_TITLE} text={SIDEBAR_SUBTITLE} />
           {exploreControls}
         </Tabs.Content>
@@ -333,6 +357,7 @@ const Sidebar = ({
             onUploadSuccess={onUploadSuccess}
             onFileChange={onFileChange}
             onClearCustomData={onClearCustomData}
+            onClearToExplore={onClearCustomData ? handleClearToExplore : null}
             previewCount={previewCount}
             previewName={previewName}
             linkedViruses={linkedViruses}
