@@ -107,6 +107,7 @@ export const RESULTS_POINTS = (count = 0) =>
   `${count.toLocaleString('en-US')} presence points`;
 export const MAP_LAYERS_LABEL = 'Map layers';
 export const UPLOAD_NEW_DATASET = 'Upload new dataset';
+export const CLEAR_UPLOADED_DATA = 'Clear uploaded data';
 export const DOWNLOAD_RESULTS = 'Download results';
 export const DOWNLOAD_ERROR_TITLE = 'Download failed';
 export const DOWNLOAD_ERROR_TEXT =
