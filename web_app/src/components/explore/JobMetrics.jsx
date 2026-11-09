@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { Box, Button, Flex, Heading, Table, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  Table,
+  Text,
+  VisuallyHidden,
+} from '@chakra-ui/react';
+import { findFeature, featureGroups } from '@/libs/features';
 import {
   METRICS_PERFORMANCE_LABEL,
   METRICS_IMPORTANCE_LABEL,
@@ -75,7 +84,20 @@ const PerformanceTable = ({ models, split }) => (
   </Table.Root>
 );
 
-// Bars are scaled to the model's largest importance.
+// Swatches for the feature groups shown, since bars are coloured by group.
+const GroupLegend = ({ groups }) => (
+  <Flex as='ul' wrap='wrap' gap={3} listStyleType='none' fontSize='2xs'>
+    {groups.map(({ key, label, color }) => (
+      <Flex as='li' key={key} align='center' gap={1} color='gray.700'>
+        <Box w='8px' h='8px' borderRadius='2px' bg={color} aria-hidden='true' />
+        {label}
+      </Flex>
+    ))}
+  </Flex>
+);
+
+// Bars are scaled to the model's largest importance. Rows show the feature's
+// short label; the full name is in the tooltip and read by screen readers.
 const ImportanceBars = ({ model, rows }) => {
   const max = rows[0]?.mean || 1;
   return (
@@ -83,32 +105,44 @@ const ImportanceBars = ({ model, rows }) => {
       <Text as='h4' fontSize='xs' fontWeight={600} color='gray.700' mb={1}>
         {modelName(model)}
       </Text>
-      <Flex as='ul' direction='column' gap='2px' listStyleType='none'>
-        {rows.map((row) => (
-          <Flex
-            as='li'
-            key={row.feature}
-            align='center'
-            gap={2}
-            fontSize='xs'
-            title={`${row.feature}: ${formatStat(row, 3)}`}
-          >
-            <Text w='3.5rem' flexShrink={0} color='gray.700' truncate>
-              {row.feature}
-            </Text>
-            <Box flex={1} minW={0} aria-hidden='true'>
-              <Box
-                h='10px'
-                w={`${Math.max((row.mean / max) * 100, 0)}%`}
-                bg='blue.500'
-                borderRightRadius='4px'
-              />
-            </Box>
-            <Text color='gray.600' fontVariantNumeric='tabular-nums'>
-              {row.mean.toFixed(3)}
-            </Text>
-          </Flex>
-        ))}
+      <Flex as='ul' direction='column' gap='3px' listStyleType='none'>
+        {rows.map((row) => {
+          const feature = findFeature(row.feature);
+          const units = feature.units ? ` (${feature.units})` : '';
+          return (
+            <Flex
+              as='li'
+              key={row.feature}
+              align='center'
+              gap={2}
+              fontSize='2xs'
+              lineHeight='short'
+              title={`${feature.name}${units}: ${formatStat(row, 3)}`}
+            >
+              <Text w='7.5rem' flexShrink={0} color='gray.700' truncate>
+                <span aria-hidden='true'>{feature.label}</span>
+                <VisuallyHidden>{feature.name}</VisuallyHidden>
+              </Text>
+              <Box flex={1} minW={0} aria-hidden='true'>
+                <Box
+                  h='8px'
+                  w={`${Math.max((row.mean / max) * 100, 0)}%`}
+                  bg={feature.color}
+                  borderRightRadius='3px'
+                />
+              </Box>
+              <Text
+                w='2rem'
+                flexShrink={0}
+                textAlign='end'
+                color='gray.600'
+                fontVariantNumeric='tabular-nums'
+              >
+                {row.mean.toFixed(3)}
+              </Text>
+            </Flex>
+          );
+        })}
       </Flex>
     </Box>
   );
@@ -130,6 +164,10 @@ const JobMetrics = ({ metrics, loading, error }) => {
 
   const { models, importances } = metrics;
   const importanceEntries = Object.entries(importances);
+  const shownImportances = importanceEntries.map(([model, rows]) => [
+    model,
+    showAll ? rows : rows.slice(0, TOP_FEATURES),
+  ]);
   const hasMore = importanceEntries.some(
     ([, rows]) => rows.length > TOP_FEATURES
   );
@@ -151,19 +189,22 @@ const JobMetrics = ({ metrics, loading, error }) => {
       {importanceEntries.length > 0 && (
         <Flex direction='column' gap={2}>
           <SectionHeading>{METRICS_IMPORTANCE_LABEL}</SectionHeading>
-          {importanceEntries.map(([model, rows]) => (
-            <ImportanceBars
-              key={model}
-              model={model}
-              rows={showAll ? rows : rows.slice(0, TOP_FEATURES)}
-            />
+          <GroupLegend
+            groups={featureGroups(
+              shownImportances.flatMap(([, rows]) =>
+                rows.map((row) => row.feature)
+              )
+            )}
+          />
+          {shownImportances.map(([model, rows]) => (
+            <ImportanceBars key={model} model={model} rows={rows} />
           ))}
           {hasMore && (
             <Button
               size='xs'
               variant='ghost'
               colorPalette='blue'
-              alignSelf='flex-start'
+              alignSelf='stretch'
               aria-expanded={showAll}
               onClick={() => setShowAll((value) => !value)}
             >
