@@ -11,6 +11,7 @@ import {
 import { findFeature, featureGroups } from '@/libs/features';
 import {
   METRICS_PERFORMANCE_LABEL,
+  METRICS_PERFORMANCE_NOTE,
   METRICS_IMPORTANCE_LABEL,
   METRICS_LOADING,
   METRICS_ERROR,
@@ -50,14 +51,14 @@ const SectionHeading = ({ children }) => (
 );
 
 // One table per split (held-out test, cross-validation): a row per metric, a
-// column per model.
+// column per model. Cells show the mean; the ± spread is in the hover title.
 const PerformanceTable = ({ models, split }) => (
   <Table.Root size='sm' textStyle='xs' aria-label={split.label}>
     <Table.Header>
-      <Table.Row>
-        <Table.ColumnHeader px={1}>{split.label}</Table.ColumnHeader>
+      <Table.Row bg='transparent'>
+        <Table.ColumnHeader p={1}>{split.label}</Table.ColumnHeader>
         {models.map(({ id }) => (
-          <Table.ColumnHeader key={id} px={1} textAlign='end'>
+          <Table.ColumnHeader key={id} p={1} textAlign='end'>
             {modelName(id)}
           </Table.ColumnHeader>
         ))}
@@ -65,19 +66,23 @@ const PerformanceTable = ({ models, split }) => (
     </Table.Header>
     <Table.Body>
       {Object.entries(METRICS_NAMES).map(([metric, name]) => (
-        <Table.Row key={metric}>
-          <Table.Cell px={1}>{name}</Table.Cell>
-          {models.map(({ id, metrics }) => (
-            <Table.Cell
-              key={id}
-              px={1}
-              textAlign='end'
-              fontVariantNumeric='tabular-nums'
-              whiteSpace='nowrap'
-            >
-              {formatStat(metrics[`${split.prefix}_${metric}`])}
-            </Table.Cell>
-          ))}
+        <Table.Row key={metric} bg='transparent'>
+          <Table.Cell p={1}>{name}</Table.Cell>
+          {models.map(({ id, metrics }) => {
+            const stat = metrics[`${split.prefix}_${metric}`];
+            return (
+              <Table.Cell
+                key={id}
+                p={1}
+                textAlign='end'
+                fontVariantNumeric='tabular-nums'
+                whiteSpace='nowrap'
+                title={stat?.std != null ? formatStat(stat) : undefined}
+              >
+                {formatStat({ mean: stat?.mean })}
+              </Table.Cell>
+            );
+          })}
         </Table.Row>
       ))}
     </Table.Body>
@@ -177,13 +182,18 @@ const JobMetrics = ({ metrics, loading, error }) => {
       {models.length > 0 && (
         <Flex direction='column' gap={2}>
           <SectionHeading>{METRICS_PERFORMANCE_LABEL}</SectionHeading>
-          {METRICS_SPLITS.map((split) => (
-            <PerformanceTable
-              key={split.prefix}
-              models={models}
-              split={split}
-            />
-          ))}
+          <Flex direction='column' gap={3} py={1}>
+            {METRICS_SPLITS.map((split) => (
+              <PerformanceTable
+                key={split.prefix}
+                models={models}
+                split={split}
+              />
+            ))}
+          </Flex>
+          <Text fontSize='2xs' color='gray.600'>
+            {METRICS_PERFORMANCE_NOTE}
+          </Text>
         </Flex>
       )}
       {importanceEntries.length > 0 && (
