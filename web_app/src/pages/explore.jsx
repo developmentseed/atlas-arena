@@ -8,6 +8,7 @@ import Sidebar, { SIDEBAR_TABS } from '@/components/explore/Sidebar';
 import SDMLegend from '@/components/explore/SDMLegend';
 import { getMetadataMd } from '@/libs/markdown';
 import SidePanel from '@/components/explore/SidePanel';
+import MetricsPanel from '@/components/explore/MetricsPanel';
 import {
   ALL_VIRUS,
   BASEMAP_STYLE,
@@ -377,6 +378,13 @@ const Explore = ({ mddata }) => {
         </Box>
         <SidePanel dataVirus={dataVirus} />
       </Box>
+      {customData && customData.status === 'SUCCEEDED' && (
+        <MetricsPanel
+          key={customData.jobId}
+          jobId={customData.jobId}
+          species={customData.species}
+        />
+      )}
     </Flex>
   );
 };

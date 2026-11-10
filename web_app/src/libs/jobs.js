@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { zipSync } from 'fflate';
 import { apiFetch } from '@/libs/api';
+import { parseRows, toNumber } from '@/libs/csv';
 import { JOBS_URL } from '@/config/constants/general';
 
 // Custom-data model runs on the atlasarena-model-infra API: POST jobs with the
@@ -85,13 +86,15 @@ export const getJob = async (jobId) => {
 // finished (S3 answers 403 for a missing object it won't list).
 export class JobNotAvailable extends Error {}
 
+const jobBaseUrl = (jobId) => `${JOBS_URL}jobs/${encodeURIComponent(jobId)}/`;
+
 // A finished job's public result: { job_id, species_name, rasters }, rasters
 // being public COG URLs keyed by stem (as pickRaster and foiRasters expect).
 // result.json is the worker's last write, so it exists only once the job has
 // succeeded. Its raster URIs are GDAL paths (/vsis3/<bucket>/jobs/<id>/<file>);
 // the files sit next to it, so only their basenames are used.
 export const getJobResult = async (jobId) => {
-  const base = `${JOBS_URL}jobs/${encodeURIComponent(jobId)}/`;
+  const base = jobBaseUrl(jobId);
   let data;
   try {
     ({ data } = await axios.get(`${base}result.json`));
@@ -106,6 +109,76 @@ export const getJobResult = async (jobId) => {
     })
   );
   return { job_id: data.job_id, species_name: data.species_name, rasters };
+};
+
+// A stats table's contents, or null if the job doesn't have it: older jobs
+// don't, and S3 answers 403 for a missing object it won't list.
+const fetchJobTable = async (jobId, file, responseType) => {
+  try {
+    const { data } = await axios.get(`${jobBaseUrl(jobId)}${file}`, {
+      responseType,
+    });
+    return data;
+  } catch (err) {
+    if ([403, 404].includes(err.response?.status)) return null;
+    throw err;
+  }
+};
+
+// metrics_summary.csv as [{ id, metrics: { test_auc_roc: { mean, std }, ... } }].
+// std is null for a single replicate.
+const parseModelMetrics = (text) =>
+  parseRows(text).map(({ model, ...columns }) => ({
+    id: model,
+    metrics: Object.fromEntries(
+      Object.keys(columns)
+        .filter((column) => column.endsWith('_mean'))
+        .map((column) => {
+          const metric = column.replace(/_mean$/, '');
+          return [
+            metric,
+            {
+              mean: toNumber(columns[column]),
+              std: toNumber(columns[`${metric}_std`]),
+            },
+          ];
+        })
+    ),
+  }));
+
+// feature_importances_summary.csv as { [model]: [{ feature, mean, std }] },
+// largest first. Estimators without importances have a blank mean: left out.
+const parseImportances = (text) => {
+  const importances = {};
+  parseRows(text).forEach(
+    ({ model, feature, importance_mean, importance_std }) => {
+      const mean = toNumber(importance_mean);
+      if (mean == null) return;
+      (importances[model] = importances[model] || []).push({
+        feature,
+        mean,
+        std: toNumber(importance_std),
+      });
+    }
+  );
+  Object.values(importances).forEach((rows) =>
+    rows.sort((a, b) => b.mean - a.mean)
+  );
+  return importances;
+};
+
+// A finished job's summary stats (public): { models, importances }, as parsed
+// above, or null for a job with neither table. Either can be empty on its own.
+export const getJobMetrics = async (jobId) => {
+  const [summary, importances] = await Promise.all([
+    fetchJobTable(jobId, 'metrics_summary.csv', 'text'),
+    fetchJobTable(jobId, 'feature_importances_summary.csv', 'text'),
+  ]);
+  if (summary == null && importances == null) return null;
+  return {
+    models: summary == null ? [] : parseModelMetrics(summary),
+    importances: importances == null ? {} : parseImportances(importances),
+  };
 };
 
 // The job's uploaded points (public). Older jobs, and ones submitted with a
@@ -155,21 +228,38 @@ export const fetchPresence = async (url) => {
   return data;
 };
 
-// Saves every raster of a succeeded job as one zip,
-// atlasarena_<species_slug>_<job_id>.zip with a <stem>.tif per raster. The
-// COGs are already DEFLATE-compressed, so the zip only stores them.
-export const downloadJobRasters = async (jobId) => {
+const STATS_FILES = [
+  'metrics.csv',
+  'metrics_summary.csv',
+  'feature_importances_summary.csv',
+];
+
+// Saves a succeeded job's outputs as one zip,
+// atlasarena_<species_slug>_<job_id>.zip with a <stem>.tif per raster and the
+// stats tables the job has. The COGs are already DEFLATE-compressed and the
+// CSVs are tiny, so the zip only stores them.
+export const downloadJobResults = async (jobId) => {
   const job = await getJobResult(jobId);
   const rasters = Object.entries(job.rasters || {});
   if (!rasters.length) throw new Error('This job has no rasters');
-  const files = Object.fromEntries(
-    await Promise.all(
+  const [rasterFiles, statsFiles] = await Promise.all([
+    Promise.all(
       rasters.map(async ([stem, url]) => {
         const { data } = await axios.get(url, { responseType: 'arraybuffer' });
         return [`${stem}.tif`, new Uint8Array(data)];
       })
-    )
-  );
+    ),
+    Promise.all(
+      STATS_FILES.map(async (file) => {
+        const data = await fetchJobTable(jobId, file, 'arraybuffer');
+        return data && [file, new Uint8Array(data)];
+      })
+    ),
+  ]);
+  const files = Object.fromEntries([
+    ...rasterFiles,
+    ...statsFiles.filter(Boolean),
+  ]);
   const zipped = zipSync(files, { level: 0 });
   const slug = (job.species_name || 'species')
     .toLowerCase()

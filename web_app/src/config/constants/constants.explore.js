@@ -73,6 +73,14 @@ export const RUN_K_HINT = (minRange, maxRange) =>
 export const RUN_K_ERROR = 'Enter a number of 0 or more.';
 export const RUN_K_ORDER_ERROR = 'Max must be at least min.';
 export const RUN_SPECIES_LOADING = 'Loading species…';
+export const RUN_SPECIES_PLACEHOLDER = 'Select or search for a species';
+export const RUN_PATHOGEN_NO_SPECIES = 'Choose a species first.';
+export const RUN_SPECIES_EMPTY = 'No matching species';
+export const RUN_SPECIES_DETECTED = 'Detected from your file';
+export const RUN_SPECIES_DETECTED_CHANGED = (name) =>
+  `Your file suggested ${name}`;
+export const RUN_SPECIES_NOT_DETECTED =
+  'We couldn’t detect the species from your file. Choose it from the list.';
 export const RUN_SPECIES_ERROR_TITLE = 'Couldn’t load species list';
 export const RUN_SPECIES_ERROR_TEXT =
   'Species and pathogen parameters are unavailable. Reload the page to try again.';
@@ -108,10 +116,32 @@ export const RESULTS_POINTS = (count = 0) =>
   `${count.toLocaleString('en-US')} presence points`;
 export const MAP_LAYERS_LABEL = 'Map layers';
 export const UPLOAD_NEW_DATASET = 'Upload new dataset';
+export const CLEAR_UPLOADED_DATA = 'Clear uploaded data';
 export const DOWNLOAD_RESULTS = 'Download results';
 export const DOWNLOAD_ERROR_TITLE = 'Download failed';
 export const DOWNLOAD_ERROR_TEXT =
   'We couldn’t download the results. Please try again.';
+// CUSTOM JOB METRICS (right-hand panel, once a run has succeeded)
+export const METRICS_PANEL_TITLE = 'Model metrics';
+export const METRICS_PANEL_SHOW = 'Show model metrics';
+export const METRICS_PANEL_HIDE = 'Hide model metrics';
+export const METRICS_PERFORMANCE_LABEL = 'Model performance';
+export const METRICS_IMPORTANCE_LABEL = 'Feature importance';
+export const METRICS_LOADING = 'Loading model metrics';
+export const METRICS_ERROR = 'We couldn’t load the model metrics.';
+export const METRICS_SHOW_ALL = 'Show all features';
+export const METRICS_SHOW_FEWER = 'Show fewer features';
+export const METRICS_SPLITS = [
+  { prefix: 'test', label: 'Held-out test' },
+  { prefix: 'cv', label: 'Cross-validation' },
+];
+export const METRICS_NAMES = {
+  accuracy: 'Accuracy',
+  precision: 'Precision',
+  recall: 'Recall',
+  auc_roc: 'AUC-ROC',
+};
+export const METRICS_MODEL_NAMES = { rf: 'Random forest', et: 'Extra trees' };
 // CUSTOM JOB STATUS (sidebar, while custom data is loaded)
 export const JOB_STATUS_TEXT = {
   LOADING: 'Loading model run',

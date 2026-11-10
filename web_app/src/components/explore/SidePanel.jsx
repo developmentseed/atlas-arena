@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Box,
   Button,
@@ -31,7 +31,11 @@ const SidePanel = ({ dataVirus = {} }) => {
       />
     </Box>
   );
-  const hasData = contentHtml && contentHtml != '';
+  const hasData = Boolean(contentHtml);
+
+  useEffect(() => {
+    if (!hasData) setOpen(false);
+  }, [hasData]);
   return (
     <Box
       position='absolute'
