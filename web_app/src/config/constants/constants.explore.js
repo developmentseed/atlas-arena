@@ -126,6 +126,8 @@ export const METRICS_PANEL_TITLE = 'Model metrics';
 export const METRICS_PANEL_SHOW = 'Show model metrics';
 export const METRICS_PANEL_HIDE = 'Hide model metrics';
 export const METRICS_PERFORMANCE_LABEL = 'Model performance';
+export const METRICS_PERFORMANCE_NOTE =
+  'Values are means; hover for ± standard deviation.';
 export const METRICS_IMPORTANCE_LABEL = 'Feature importance';
 export const METRICS_LOADING = 'Loading model metrics';
 export const METRICS_ERROR = 'We couldn’t load the model metrics.';
