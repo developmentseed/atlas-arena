@@ -105,7 +105,8 @@ const ColorLegend = ({
 };
 
 // `heading` and `ticks` override the species-distribution defaults, so the
-// same legend serves other rasters (force of infection).
+// same legend serves other rasters (force of infection); a label's own `ticks`
+// override `ticks` for that row.
 const SDMLegend = ({
   labels = [],
   value = {},
@@ -121,12 +122,13 @@ const SDMLegend = ({
   const unit = isDelta ? UNIT_DELTA : UNIT_SDM;
   if (!labels || labels.length == 0) return null;
 
-  const renderBoxLegend = labels.map((i) => (
+  // A label may carry its own `ticks` (FOI rows, each on its virus's range).
+  const renderBoxLegend = labels.map(({ ticks: rowTicks, ...i }) => (
     <ColorLegend
       key={i.title}
       {...i}
       has_many={labels.length > 1}
-      labels={labelsUnits}
+      labels={rowTicks || labelsUnits}
       value={value}
       handleChange={handleChange}
     />

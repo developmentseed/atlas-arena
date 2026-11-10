@@ -27,12 +27,8 @@ import {
   LuX,
 } from 'react-icons/lu';
 
-import {
-  ALL_VIRUS,
-  DEFAULT_MODEL,
-  DEFAULT_TIME,
-  H_FILTER_BAR,
-} from '@/config/constants/general';
+import { ALL_VIRUS, H_FILTER_BAR } from '@/config/constants/general';
+import { getCatalogDefaults } from '@/libs/catalog';
 import {
   SIDEBAR_TITLE,
   SIDEBAR_SUBTITLE,
@@ -41,6 +37,7 @@ import {
   TIMEFRAME_LABEL,
   TIMEFRAME_INFO,
   SDM_TOGGLE_LABEL,
+  FOI_TOGGLE_LABEL,
   SPECIES_LABEL,
   SPECIES_INFO,
   MODEL_LABEL,
@@ -59,7 +56,6 @@ import {
 
 // Shared by the locked controls (aria-describedby) while custom data is shown
 const CUSTOM_DATA_NOTICE_ID = 'custom-data-notice';
-const DEFAULT_SDM_TOGGLE = true;
 export const SIDEBAR_TABS = { EXPLORE: 'explore', RUN: 'run' };
 
 // customData: details of the loaded custom model run, or null.
@@ -113,60 +109,59 @@ const Sidebar = ({
   const [selectedSpecies, setSelectedSpecies] = useState([]);
   const [selectedTimeFrame, setSelectedTimeFrame] = useState([]);
   const [selectedModel, setSelectedModel] = useState('');
-  const [showSdm, setShowSdm] = useState(DEFAULT_SDM_TOGGLE);
+  const [showSdm, setShowSdm] = useState(true);
+  const [showCatalogFoi, setShowCatalogFoi] = useState(true);
 
+  const speciesOfVirus = (virus) =>
+    allSpecies
+      .filter((i) => virus === ALL_VIRUS || (i.virus || []).includes(virus))
+      .map((i) => i.name);
+
+  // Initial selection: catalog.json's `defaults` block (see getCatalogDefaults).
   useEffect(() => {
-    const tmpSpecies = allSpecies.map((i) => i.name);
-    handleSetDefault(
-      ALL_VIRUS,
-      tmpSpecies,
-      [DEFAULT_TIME],
-      DEFAULT_MODEL,
-      DEFAULT_SDM_TOGGLE
-    );
-  }, [allVirus]);
-  // actions
-  const handleSetDefault = (virus, species, time_frame, model, sdm) => {
-    setSelectedVirus(virus);
+    const defaults = getCatalogDefaults();
+    const available = speciesOfVirus(defaults.virus);
+    const species = defaults.species
+      ? defaults.species.filter((name) => available.includes(name))
+      : available;
+    setSelectedVirus(defaults.virus);
     setSelectedSpecies(species);
-    setSelectedTimeFrame(time_frame);
-    setSelectedModel(model);
-    setShowSdm(sdm);
-
-    handleFilterTilesId({
-      virus,
+    setSelectedTimeFrame([defaults.time_frame]);
+    setSelectedModel(defaults.model);
+    setShowSdm(defaults.showSdm);
+    setShowCatalogFoi(defaults.showFoi);
+    updateTiles({
+      virus: defaults.virus,
       species,
-      time_frame,
-      model,
+      time_frame: [defaults.time_frame],
+      model: defaults.model,
+      sdm: defaults.showSdm,
+      foi: defaults.showFoi,
     });
-  };
+  }, [allVirus]);
 
   // While "Show SDM" is off the selections are kept but no SDM layers are
-  // requested, so toggling it back on restores them.
+  // requested, so toggling it back on restores them. FOI follows the same
+  // virus, species and scenario, behind its own toggle.
   const updateTiles = ({
     virus = selectedVirus,
     species = selectedSpecies,
     time_frame = selectedTimeFrame,
     model = selectedModel,
     sdm = showSdm,
+    foi = showCatalogFoi,
   }) => {
     handleFilterTilesId({
       virus,
       species: sdm ? species : [],
       time_frame,
       model: sdm ? model : '',
+      foi_species: foi ? species : [],
     });
   };
 
   const handleVirusChange = (value) => {
-    let species = [];
-    if (value === ALL_VIRUS) {
-      species = allSpecies.map((i) => i.name);
-    } else {
-      species = allSpecies
-        .filter((i) => (i.virus || []).includes(value))
-        .map((i) => i.name);
-    }
+    const species = speciesOfVirus(value);
     setSelectedVirus(value);
     setSelectedSpecies(species);
     updateTiles({ virus: value, species });
@@ -191,6 +186,12 @@ const Sidebar = ({
     const newShowSdm = !showSdm;
     setShowSdm(newShowSdm);
     updateTiles({ sdm: newShowSdm });
+  };
+
+  const handleFoiToggle = () => {
+    const newShowFoi = !showCatalogFoi;
+    setShowCatalogFoi(newShowFoi);
+    updateTiles({ foi: newShowFoi });
   };
 
   const handleClearToExplore = () => {
@@ -229,6 +230,13 @@ const Sidebar = ({
         value={showSdm}
         handleAction={handleSdmToggle}
       />
+      <FormControlSwitch
+        label={FOI_TOGGLE_LABEL}
+        value={showCatalogFoi}
+        handleAction={handleFoiToggle}
+        // A model run brings its own FOI layers (Run Models tab).
+        isDisabled={!!customData}
+      />
       <FormControlComboboxSpecies
         label={SPECIES_LABEL}
         options={allSpecies}
@@ -236,7 +244,7 @@ const Sidebar = ({
         values={selectedSpecies}
         handleAction={handleSpeciesChange}
         filterValue={selectedVirus}
-        isDisabled={!showSdm}
+        isDisabled={!showSdm && !showCatalogFoi}
         isLocked={!!customData}
         notice={
           customData && customData.species
